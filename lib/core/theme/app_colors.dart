@@ -9,6 +9,7 @@ class AppColors {
   static const Color ash = Color(0xFF9CA3AF);
   static const Color yellow = Color(0xFFFFC107);
   static const Color darkYellow = Color(0xFFFFB000);
+  static const Color buttonColor = Color(0xFFE7C87A);
   
   // Gradient colors
   static const LinearGradient primaryGradient = LinearGradient(

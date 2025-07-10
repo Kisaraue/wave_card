@@ -35,6 +35,7 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _rotationAnimation;
+  bool _isHovered = false;
 
   @override
   void initState() {
@@ -89,22 +90,26 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: widget.onTap,
-      onTapDown: (_) => _animationController.forward(),
-      onTapUp: (_) => _animationController.reverse(),
-      onTapCancel: () => _animationController.reverse(),
-      child: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: Transform.rotate(
-              angle: _rotationAnimation.value,
-              child: _buildCard(context),
-            ),
-          );
-        },
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        onTapDown: (_) => _animationController.forward(),
+        onTapUp: (_) => _animationController.reverse(),
+        onTapCancel: () => _animationController.reverse(),
+        child: AnimatedBuilder(
+          animation: _animationController,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _scaleAnimation.value,
+              child: Transform.rotate(
+                angle: _rotationAnimation.value,
+                child: _buildCard(context),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -137,6 +142,7 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
           _buildCardBackground(),
           _buildCardContent(),
           if (widget.showActions) _buildCardActions(),
+          _buildShareButton(),
         ],
       ),
     );
@@ -667,7 +673,12 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
   Widget _buildProfileImageWidget() {
     final imageUrl = widget.profileCard.profileImageUrl!;
     
-    // Check if it's a local file path or network URL
+    // Check for invalid local paths (Windows paths that don't work)
+    if (imageUrl.contains('C:\\') || imageUrl.contains('c:\\') || imageUrl.contains('\\')) {
+      return _buildInitialsContainer();
+    }
+    
+    // Check if it's a network URL
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return CachedNetworkImage(
         imageUrl: imageUrl,
@@ -678,31 +689,45 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
         placeholder: (context, url) => const Center(
           child: CircularProgressIndicator(strokeWidth: 2),
         ),
-        errorWidget: (context, url, error) => Container(
-          color: AppColors.lightGrey,
-          child: const Icon(Icons.person, size: 30, color: AppColors.grey),
-        ),
+        errorWidget: (context, url, error) => _buildInitialsContainer(),
       );
     } else {
-      // Handle local file
-      final file = File(imageUrl);
-      if (file.existsSync()) {
-        return Image.file(
-          file,
-          fit: BoxFit.cover,
-          filterQuality: FilterQuality.low,
-          errorBuilder: (context, error, stackTrace) => Container(
-            color: AppColors.lightGrey,
-            child: const Icon(Icons.person, size: 30, color: AppColors.grey),
-          ),
-        );
-      } else {
-        return Container(
-          color: AppColors.lightGrey,
-          child: const Icon(Icons.person, size: 30, color: AppColors.grey),
-        );
-      }
+      // For any other case, show initials
+      return _buildInitialsContainer();
     }
+  }
+
+  Widget _buildInitialsContainer() {
+    final initials = _getInitials(widget.profileCard.fullName);
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            widget.profileCard.cardStyle.textColor.withOpacity(0.8),
+            widget.profileCard.cardStyle.textColor,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initials,
+          style: TextStyle(
+            color: widget.profileCard.cardStyle.backgroundColor,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getInitials(String fullName) {
+    final names = fullName.trim().split(' ');
+    if (names.isEmpty) return '?';
+    if (names.length == 1) return names[0][0].toUpperCase();
+    return '${names[0][0].toUpperCase()}${names[names.length - 1][0].toUpperCase()}';
   }
 
   Widget _buildContactInfo() {
@@ -828,6 +853,9 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
             case 'duplicate':
               widget.onDuplicate?.call();
               break;
+            case 'share':
+              _showSharingOptions();
+              break;
             case 'delete':
               widget.onDelete?.call();
               break;
@@ -855,6 +883,16 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
             ),
           ),
           const PopupMenuItem(
+            value: 'share',
+            child: Row(
+              children: [
+                Icon(Icons.share, size: 16),
+                SizedBox(width: 8),
+                Text('Share'),
+              ],
+            ),
+          ),
+          const PopupMenuItem(
             value: 'delete',
             child: Row(
               children: [
@@ -869,4 +907,44 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
     );
   }
 
+  Widget _buildShareButton() {
+    return Positioned(
+      top: 8,
+      right: 8,
+      child: GestureDetector(
+        onTap: _showSharingOptions,
+        child: Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: AppColors.ash.withOpacity(0.9),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.black.withOpacity(0.15),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.share,
+            size: 16,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showSharingOptions() {
+    if (widget.onShare != null) {
+      widget.onShare!();
+    } else {
+      Navigator.pushNamed(
+        context,
+        '/qr-share',
+        arguments: widget.profileCard.id,
+      );
+    }
+  }
 }

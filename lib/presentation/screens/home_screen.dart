@@ -4,11 +4,12 @@ import '../widgets/profile_card_widget.dart';
 import '../widgets/glassmorphism_container.dart';
 import '../../providers/profile_card_provider.dart';
 import '../../providers/contact_provider.dart';
-import '../../providers/theme_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/toast_utils.dart';
 import '../../config/router.dart';
 import '../../data/models/contact.dart';
+import 'qr_scanner_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -22,18 +23,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Initialize toast for this context
+    ToastUtils.init(context);
+    
     return Scaffold(
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  AppColors.white,
-                  AppColors.lightGrey,
-                ],
+                colors: [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withOpacity(0.8)],
               ),
             ),
             child: IndexedStack(
@@ -45,6 +46,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ],
             ),
           ),
+          _buildQRScanButton(),
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),
@@ -56,10 +58,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       height: 70,
       decoration: const BoxDecoration(
         gradient: AppColors.glassGradient,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20),
-          topRight: Radius.circular(20),
-        ),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -104,15 +102,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               Icon(
                 icon,
-                color: isSelected ? AppColors.yellow : AppColors.grey,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 size: 22,
               ),
               const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppColors.yellow : AppColors.grey,
-                  fontSize: 10,
+                  color: isSelected
+                      ? AppColors.grey
+                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 ),
                 maxLines: 1,
@@ -123,6 +125,55 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildQRScanButton() {
+    return Positioned(
+      right: 20,
+      bottom: 90, // Above the bottom navigation bar
+      child: Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: AppColors.yellow,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: _scanQRCode,
+            borderRadius: BorderRadius.circular(28),
+            child: Container(
+              width: 56,
+              height: 56,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.qr_code_scanner,
+                color: Theme.of(context).colorScheme.onPrimary,
+                size: 28,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _scanQRCode() async {
+    final contact = await Navigator.push<Contact>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const QRScannerScreen(),
+      ),
+    );
+
+    if (contact != null && mounted) {
+      // Show success message
+      ToastUtils.showSuccess(
+        'Received ${contact.profileCard.fullName}\'s card!',
+        isDarkMode: false,
+      );
+    }
   }
 
 }
@@ -151,10 +202,10 @@ class _MyCardsTab extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.error_outline,
                         size: 64,
-                        color: AppColors.grey,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                       ),
                       const SizedBox(height: AppConstants.mediumSpacing),
                       Text(
@@ -195,7 +246,7 @@ class _MyCardsTab extends ConsumerWidget {
             Text(
               'Create and manage your profile cards',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.grey,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
           ],
@@ -204,7 +255,7 @@ class _MyCardsTab extends ConsumerWidget {
           GlassmorphismContainer(
             child: IconButton(
               onPressed: () => Navigator.pushNamed(context, AppRouter.createCardWizard),
-              icon: const Icon(Icons.add, color: AppColors.yellow),
+              icon: Icon(Icons.add, color: AppColors.grey),
               iconSize: 32,
             ),
           ),
@@ -241,31 +292,34 @@ class _MyCardsTab extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.credit_card_outlined,
             size: 80,
-            color: AppColors.grey,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
           ),
           const SizedBox(height: AppConstants.mediumSpacing),
           Text(
             'No cards yet',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              color: AppColors.grey,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
           const SizedBox(height: AppConstants.smallSpacing),
           Text(
             'Create your first profile card to get started',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.grey,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: AppConstants.largeSpacing),
-          ElevatedButton.icon(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.buttonColor,
+              foregroundColor: AppColors.black,
+            ),
             onPressed: () => Navigator.pushNamed(context, AppRouter.createCardWizard),
-            icon: const Icon(Icons.add),
-            label: const Text('Create Card'),
+            child: const Text('Create Card'),
           ),
         ],
       ),
@@ -273,41 +327,372 @@ class _MyCardsTab extends ConsumerWidget {
   }
 }
 
-class _MyContactsTab extends StatelessWidget {
+class _MyContactsTab extends ConsumerStatefulWidget {
   const _MyContactsTab();
 
   @override
+  ConsumerState<_MyContactsTab> createState() => _MyContactsTabState();
+}
+
+class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
+  @override
   Widget build(BuildContext context) {
+    final contactsAsync = ref.watch(contactProvider);
+
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumSpacing),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'My Contacts',
-              style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppConstants.smallSpacing),
-            Text(
-              'View and manage received cards',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.grey,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'My Contacts',
+                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppConstants.smallSpacing),
+                    Text(
+                      'View and manage received cards',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      ),
+                    ),
+                  ],
+                ),
+                GlassmorphismContainer(
+                  child: IconButton(
+                    onPressed: () => Navigator.pushNamed(context, AppRouter.contacts),
+                    icon: Icon(Icons.view_list, color: Theme.of(context).colorScheme.primary),
+                    iconSize: 24,
+                    tooltip: 'View Full List',
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppConstants.largeSpacing),
             Expanded(
-              child: Center(
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pushNamed(context, AppRouter.contacts),
-                  child: const Text('View All Contacts'),
-                ),
+              child: contactsAsync.when(
+                data: (contacts) => _buildContactsList(contacts),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => _buildErrorState(error),
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildContactsList(List<Contact> contacts) {
+    if (contacts.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    // Show first 5 contacts for preview
+    final displayContacts = contacts.take(5).toList();
+
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: displayContacts.length,
+            itemBuilder: (context, index) {
+              final contact = displayContacts[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: AppConstants.mediumSpacing),
+                child: _buildContactCard(contact),
+              );
+            },
+          ),
+        ),
+        if (contacts.length > 5)
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(top: AppConstants.smallSpacing),
+            child: ElevatedButton.icon(
+              onPressed: () => Navigator.pushNamed(context, AppRouter.contacts),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.view_list),
+              label: Text('View All ${contacts.length} Contacts'),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildContactCard(Contact contact) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: GlassmorphismContainer(
+          borderRadius: 15,
+          child: InkWell(
+            onTap: () => Navigator.pushNamed(
+              context,
+              '/contact-detail',
+              arguments: contact.id,
+            ),
+            borderRadius: BorderRadius.circular(15),
+            child: Padding(
+              padding: const EdgeInsets.all(AppConstants.smallSpacing),
+              child: Row(
+                children: [
+                  _buildContactAvatar(contact),
+                  const SizedBox(width: AppConstants.smallSpacing),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          contact.profileCard.fullName,
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          contact.profileCard.jobTitle,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          contact.profileCard.company,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            fontSize: 11,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactAvatar(Contact contact) {
+    final profileImageUrl = contact.profileCard.profileImageUrl;
+    
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            Theme.of(context).colorScheme.primary,
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: ClipOval(
+        child: _buildAvatarImage(profileImageUrl, contact.profileCard.fullName),
+      ),
+    );
+  }
+
+  Widget _buildAvatarImage(String? profileImageUrl, String fullName) {
+    // If no image URL or it's a broken local path, show initials
+    if (profileImageUrl == null || 
+        profileImageUrl.isEmpty || 
+        profileImageUrl.contains('C:\\') || 
+        profileImageUrl.contains('c:\\')) {
+      return _buildInitialsAvatar(fullName);
+    }
+
+    // Try to load the image, with fallback to initials
+    if (profileImageUrl.startsWith('http://') || profileImageUrl.startsWith('https://')) {
+      return Image.network(
+        profileImageUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildInitialsAvatar(fullName),
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+      );
+    } else {
+      // Local file - show initials as fallback since local paths often break
+      return _buildInitialsAvatar(fullName);
+    }
+  }
+
+  Widget _buildInitialsAvatar(String fullName) {
+    final initials = _getInitials(fullName);
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            Theme.of(context).colorScheme.primary,
+          ],
+        ),
+      ),
+      child: Center(
+        child: Text(
+          initials,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getInitials(String fullName) {
+    final names = fullName.trim().split(' ');
+    if (names.isEmpty) return '?';
+    if (names.length == 1) return names[0][0].toUpperCase();
+    return '${names[0][0].toUpperCase()}${names[names.length - 1][0].toUpperCase()}';
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.contacts_outlined,
+            size: 80,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
+          const SizedBox(height: AppConstants.mediumSpacing),
+          Text(
+            'No contacts yet',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: AppConstants.smallSpacing),
+          Text(
+            'Scan QR codes to receive profile cards from others',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppConstants.largeSpacing),
+          ElevatedButton.icon(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const QRScannerScreen()),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.buttonColor,
+              foregroundColor: AppColors.black,
+
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('Scan QR Code'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(Object error) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 80,
+            color: Theme.of(context).colorScheme.error,
+          ),
+          const SizedBox(height: AppConstants.mediumSpacing),
+          Text(
+            'Error loading contacts',
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              color: Theme.of(context).colorScheme.error,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: AppConstants.smallSpacing),
+          Text(
+            error.toString(),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppConstants.largeSpacing),
+          ElevatedButton(
+            onPressed: () => ref.refresh(contactProvider),
+            child: const Text('Retry'),
+          ),
+        ],
       ),
     );
   }
@@ -334,29 +719,19 @@ class _SettingsTab extends StatelessWidget {
             Text(
               'Customize your app experience',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.grey,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
             const SizedBox(height: AppConstants.largeSpacing),
             Expanded(
-              child: Consumer(
-                builder: (context, ref, child) {
-                  final themeMode = ref.watch(themeProvider);
-                  final themeNotifier = ref.read(themeProvider.notifier);
-                  
-                  return ListView(
-                    children: [
-                      _buildSectionHeader('Appearance'),
-                      _buildThemeSelector(themeMode, themeNotifier),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('About'),
-                      _buildAboutTile(context),
-                      const SizedBox(height: 24),
-                      _buildSectionHeader('Data'),
-                      _buildDataTile(),
-                    ],
-                  );
-                },
+              child: ListView(
+                children: [
+                  _buildSectionHeader(context, 'About'),
+                  _buildAboutTile(context),
+                  const SizedBox(height: 24),
+                  _buildSectionHeader(context, 'Data'),
+                  _buildDataTile(context),
+                ],
               ),
             ),
           ],
@@ -365,58 +740,20 @@ class _SettingsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(BuildContext context, String title) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: AppColors.black,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
   }
 
-  Widget _buildThemeSelector(AppThemeMode themeMode, ThemeNotifier themeNotifier) {
-    return Card(
-      child: Column(
-        children: [
-          RadioListTile<AppThemeMode>(
-            title: const Text('Light Mode'),
-            value: AppThemeMode.light,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                themeNotifier.setTheme(value);
-              }
-            },
-          ),
-          RadioListTile<AppThemeMode>(
-            title: const Text('Dark Mode'),
-            value: AppThemeMode.dark,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                themeNotifier.setTheme(value);
-              }
-            },
-          ),
-          RadioListTile<AppThemeMode>(
-            title: const Text('System Default'),
-            value: AppThemeMode.system,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                themeNotifier.setTheme(value);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAboutTile(BuildContext context) {
     return Card(
@@ -440,13 +777,13 @@ class _SettingsTab extends StatelessWidget {
     );
   }
 
-  Widget _buildDataTile() {
+  Widget _buildDataTile(BuildContext context) {
     return Card(
       child: ListTile(
         leading: const Icon(Icons.storage),
         title: const Text('Clear All Data'),
         subtitle: const Text('Delete all profile cards and contacts'),
-        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.red),
+        trailing: Icon(Icons.arrow_forward_ios, color: Theme.of(context).colorScheme.error),
         onTap: () {
           // TODO: Implement clear data functionality
         },

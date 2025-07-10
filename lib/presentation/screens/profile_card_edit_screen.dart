@@ -9,6 +9,7 @@ import '../../providers/profile_card_provider.dart';
 import '../../data/models/profile_card.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/toast_utils.dart';
 
 class ProfileCardEditScreen extends ConsumerStatefulWidget {
   final String? cardId;
@@ -133,16 +134,7 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
               '${source == ImageSource.camera ? 'Camera' : 'Gallery'} permission denied. Please enable it in device settings.';
         }
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-            action: SnackBarAction(
-              label: 'Settings',
-              onPressed: () => openAppSettings(),
-            ),
-          ),
-        );
+        ToastUtils.showError(errorMessage, isDarkMode: false);
       }
     }
   }
@@ -178,6 +170,9 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Initialize toast for this context
+    ToastUtils.init(context);
+
     if (widget.cardId == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Edit Profile Card')),
@@ -213,10 +208,10 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
           TextButton(
             onPressed:
                 () => _updateCard(context, ref, _formKey, widget.cardId!),
-            child: const Text(
+            child: Text(
               'Save',
               style: TextStyle(
-                color: AppColors.yellow,
+                color: AppColors.buttonColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -224,11 +219,14 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppColors.white, AppColors.lightGrey],
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
+            ],
           ),
         ),
         child: Column(
@@ -245,9 +243,12 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
                 horizontal: AppConstants.mediumSpacing,
               ),
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade400, width: 1),
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.2),
+                  width: 1,
+                ),
               ),
               child: TabBar(
                 controller: _tabController,
@@ -257,7 +258,7 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
                       width: double.infinity,
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text('Personal'),
+                      child: const Text('Personal'),
                     ),
                   ),
                   Tab(
@@ -265,7 +266,7 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
                       width: double.infinity,
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text('Profile'),
+                      child: const Text('Profile'),
                     ),
                   ),
                   Tab(
@@ -273,7 +274,7 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
                       width: double.infinity,
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text('Social'),
+                      child: const Text('Social'),
                     ),
                   ),
                   Tab(
@@ -281,15 +282,15 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
                       width: double.infinity,
                       alignment: Alignment.center,
                       padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Text('Style'),
+                      child: const Text('Style'),
                     ),
                   ),
                 ],
-                labelColor: Colors.black,
-                unselectedLabelColor: AppColors.grey,
+                labelColor: Theme.of(context).colorScheme.onSurface,
+                unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 indicator: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  color: AppColors.yellow.withOpacity(0.2),
+                  color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
                 dividerColor: Colors.transparent,
@@ -319,117 +320,125 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
   }
 
   Widget _buildCardPreview(ProfileCard profileCard) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Card Preview',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.mediumSpacing),
-        Center(child: ProfileCardWidget(profileCard: profileCard)),
-      ],
+    return Consumer(
+      builder: (context, ref, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Card Preview',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppConstants.mediumSpacing),
+            Center(child: ProfileCardWidget(profileCard: profileCard)),
+          ],
+        );
+      },
     );
   }
 
   Widget _buildPersonalDetailsTab(CardFormNotifier cardFormNotifier) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-      child: GlassmorphismContainer(
-        padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Basic Information',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.black,
-              ),
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _fullNameController,
-              label: 'Full Name',
-              icon: Icons.person,
-              required: true,
-              onChanged: (value) => cardFormNotifier.updateFullName(value),
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _jobTitleController,
-              label: 'Job Title',
-              icon: Icons.work,
-              required: true,
-              onChanged: (value) => cardFormNotifier.updateJobTitle(value),
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _companyController,
-              label: 'Company',
-              icon: Icons.business,
-              required: true,
-              onChanged: (value) => cardFormNotifier.updateCompany(value),
-            ),
-            const SizedBox(height: AppConstants.largeSpacing),
-            const Text(
-              'Contact Information',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.black,
-              ),
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _emailController,
-              label: 'Email',
-              icon: Icons.email,
-              keyboardType: TextInputType.emailAddress,
-              onChanged: (value) => cardFormNotifier.updateEmail(value),
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _phoneController,
-              label: 'Phone',
-              icon: Icons.phone,
-              keyboardType: TextInputType.phone,
-              onChanged: (value) => cardFormNotifier.updatePhone(value),
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _addressController,
-              label: 'Address',
-              icon: Icons.location_on,
-              maxLines: 2,
-              onChanged: (value) => cardFormNotifier.updateAddress(value),
-            ),
-            const SizedBox(height: AppConstants.largeSpacing),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed:
-                    () => _updateCard(context, ref, _formKey, widget.cardId!),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+    return Consumer(
+      builder: (context, ref, child) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+          child: GlassmorphismContainer(
+            padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Basic Information',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                child: const Text(
-                  'Update Card',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _fullNameController,
+                  label: 'Full Name',
+                  icon: Icons.person,
+                  required: true,
+                  onChanged: (value) => cardFormNotifier.updateFullName(value),
                 ),
-              ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _jobTitleController,
+                  label: 'Job Title',
+                  icon: Icons.work,
+                  required: true,
+                  onChanged: (value) => cardFormNotifier.updateJobTitle(value),
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _companyController,
+                  label: 'Company',
+                  icon: Icons.business,
+                  required: true,
+                  onChanged: (value) => cardFormNotifier.updateCompany(value),
+                ),
+                const SizedBox(height: AppConstants.largeSpacing),
+                Text(
+                  'Contact Information',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _emailController,
+                  label: 'Email',
+                  icon: Icons.email,
+                  keyboardType: TextInputType.emailAddress,
+                  onChanged: (value) => cardFormNotifier.updateEmail(value),
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _phoneController,
+                  label: 'Phone',
+                  icon: Icons.phone,
+                  keyboardType: TextInputType.phone,
+                  onChanged: (value) => cardFormNotifier.updatePhone(value),
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _addressController,
+                  label: 'Address',
+                  icon: Icons.location_on,
+                  maxLines: 2,
+                  onChanged: (value) => cardFormNotifier.updateAddress(value),
+                ),
+                const SizedBox(height: AppConstants.largeSpacing),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed:
+                        () => _updateCard(context, ref, _formKey, widget.cardId!),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.buttonColor,                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Update Card',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -444,101 +453,108 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
   }
 
   Widget _buildSocialMediaTab(CardFormNotifier cardFormNotifier) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-      child: GlassmorphismContainer(
-        padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Social Media',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AppColors.black,
-              ),
+    return Consumer(
+      builder: (context, ref, child) {
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+          child: GlassmorphismContainer(
+            padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Social Media',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: AppConstants.smallSpacing),
+                Text(
+                  'Add your social media links (Optional)',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                ),
+                const SizedBox(height: AppConstants.largeSpacing),
+                _buildTextField(
+                  controller: _facebookController,
+                  label: 'Facebook',
+                  icon: Icons.facebook,
+                  onChanged: (value) {
+                    cardFormNotifier.updateSocialLink('facebook', value);
+                  },
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _twitterController,
+                  label: 'Twitter',
+                  icon: Icons.alternate_email,
+                  onChanged: (value) {
+                    cardFormNotifier.updateSocialLink('twitter', value);
+                  },
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _linkedinController,
+                  label: 'LinkedIn',
+                  icon: Icons.business_center,
+                  onChanged: (value) {
+                    cardFormNotifier.updateSocialLink('linkedin', value);
+                  },
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _instagramController,
+                  label: 'Instagram',
+                  icon: Icons.photo_camera,
+                  onChanged: (value) {
+                    cardFormNotifier.updateSocialLink('instagram', value);
+                  },
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _websiteController,
+                  label: 'Website',
+                  icon: Icons.web,
+                  onChanged: (value) {
+                    cardFormNotifier.updateSocialLink('website', value);
+                  },
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _githubController,
+                  label: 'GitHub',
+                  icon: Icons.code,
+                  onChanged: (value) {
+                    cardFormNotifier.updateSocialLink('github', value);
+                  },
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _youtubeController,
+                  label: 'YouTube',
+                  icon: Icons.video_library,
+                  onChanged: (value) {
+                    cardFormNotifier.updateSocialLink('youtube', value);
+                  },
+                ),
+                const SizedBox(height: AppConstants.mediumSpacing),
+                _buildTextField(
+                  controller: _tiktokController,
+                  label: 'TikTok',
+                  icon: Icons.music_video,
+                  onChanged: (value) {
+                    cardFormNotifier.updateSocialLink('tiktok', value);
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: AppConstants.smallSpacing),
-            const Text(
-              'Add your social media links (Optional)',
-              style: TextStyle(fontSize: 14, color: AppColors.grey),
-            ),
-            const SizedBox(height: AppConstants.largeSpacing),
-            _buildTextField(
-              controller: _facebookController,
-              label: 'Facebook',
-              icon: Icons.facebook,
-              onChanged: (value) {
-                cardFormNotifier.updateSocialLink('facebook', value);
-              },
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _twitterController,
-              label: 'Twitter',
-              icon: Icons.alternate_email,
-              onChanged: (value) {
-                cardFormNotifier.updateSocialLink('twitter', value);
-              },
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _linkedinController,
-              label: 'LinkedIn',
-              icon: Icons.business_center,
-              onChanged: (value) {
-                cardFormNotifier.updateSocialLink('linkedin', value);
-              },
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _instagramController,
-              label: 'Instagram',
-              icon: Icons.photo_camera,
-              onChanged: (value) {
-                cardFormNotifier.updateSocialLink('instagram', value);
-              },
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _websiteController,
-              label: 'Website',
-              icon: Icons.web,
-              onChanged: (value) {
-                cardFormNotifier.updateSocialLink('website', value);
-              },
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _githubController,
-              label: 'GitHub',
-              icon: Icons.code,
-              onChanged: (value) {
-                cardFormNotifier.updateSocialLink('github', value);
-              },
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _youtubeController,
-              label: 'YouTube',
-              icon: Icons.video_library,
-              onChanged: (value) {
-                cardFormNotifier.updateSocialLink('youtube', value);
-              },
-            ),
-            const SizedBox(height: AppConstants.mediumSpacing),
-            _buildTextField(
-              controller: _tiktokController,
-              label: 'TikTok',
-              icon: Icons.music_video,
-              onChanged: (value) {
-                cardFormNotifier.updateSocialLink('tiktok', value);
-              },
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -561,29 +577,39 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
     int maxLines = 1,
     Function(String)? onChanged,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.grey),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.yellow, width: 2),
-        ),
-      ),
-      validator:
-          required
-              ? (value) {
-                if (value == null || value.isEmpty) {
-                  return 'This field is required';
-                }
-                return null;
-              }
-              : null,
-      onChanged: onChanged,
+    return Consumer(
+      builder: (context, ref, child) {
+        return TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            labelText: label,
+            prefixIcon: Icon(
+              icon,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: Theme.of(context).colorScheme.primary,
+                width: 2,
+              ),
+            ),
+          ),
+          validator:
+              required
+                  ? (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'This field is required';
+                    }
+                    return null;
+                  }
+                  : null,
+          onChanged: onChanged,
+        );
+      },
     );
   }
 
@@ -622,101 +648,103 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
         if (context.mounted) {
           ref.read(cardFormProvider.notifier).reset();
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile card updated successfully!'),
-              backgroundColor: AppColors.yellow,
-            ),
+
+          ToastUtils.showSuccess(
+            'Profile card updated successfully!',
+            isDarkMode: false,
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error updating card: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastUtils.showError('Error updating card: $e', isDarkMode: false);
       }
     }
   }
 
   Widget _buildProfilePictureSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Profile Picture',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        const Text(
-          'Add or update your profile picture (Optional)',
-          style: TextStyle(fontSize: 14, color: AppColors.grey),
-        ),
-        const SizedBox(height: AppConstants.mediumSpacing),
-        Center(
-          child: Column(
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.grey, width: 2),
-                ),
-                child: ClipOval(child: _buildProfileImageWidget()),
+    return Consumer(
+      builder: (context, ref, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Profile Picture',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
-              const SizedBox(height: AppConstants.mediumSpacing),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            ),
+            const SizedBox(height: AppConstants.smallSpacing),
+            Text(
+              'Add or update your profile picture (Optional)',
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(height: AppConstants.mediumSpacing),
+            Center(
+              child: Column(
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.camera),
-                    icon: const Icon(Icons.camera_alt),
-                    label: const Text('Camera'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.yellow,
-                      foregroundColor: Colors.white,
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        width: 2,
+                      ),
                     ),
+                    child: ClipOval(child: _buildProfileImageWidget()),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: () => _pickImage(ImageSource.gallery),
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Gallery'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.yellow,
-                      foregroundColor: Colors.white,
+                  const SizedBox(height: AppConstants.mediumSpacing),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: () => _pickImage(ImageSource.camera),
+                        icon: const Icon(Icons.camera_alt, color: AppColors.black,),
+                        label: const Text('Camera'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.buttonColor,
+                        ),
+                      ),
+                      ElevatedButton.icon(
+                        onPressed: () => _pickImage(ImageSource.gallery),
+                        icon: const Icon(Icons.photo_library, color: AppColors.black),
+                        label: const Text('Gallery'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.buttonColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (_hasProfileImage()) ...[
+                    const SizedBox(height: AppConstants.mediumSpacing),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _profileImage = null;
+                        });
+                        // Clear the profile image from the form
+                        ref.read(cardFormProvider.notifier).updateProfileImage('');
+                        _updateCardForm();
+                      },
+                      child: Text(
+                        'Remove Photo',
+                        style: TextStyle(color: Theme.of(context).colorScheme.error),
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
-              if (_hasProfileImage()) ...[
-                const SizedBox(height: AppConstants.mediumSpacing),
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      _profileImage = null;
-                    });
-                    // Clear the profile image from the form
-                    ref.read(cardFormProvider.notifier).updateProfileImage('');
-                    _updateCardForm();
-                  },
-                  child: const Text(
-                    'Remove Photo',
-                    style: TextStyle(color: Colors.red),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -737,8 +765,15 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
         width: 120,
         height: 120,
         errorBuilder:
-            (context, error, stackTrace) =>
-                const Icon(Icons.person, size: 60, color: AppColors.grey),
+            (context, error, stackTrace) => Consumer(
+                builder: (context, ref, child) {
+                  return Icon(
+                    Icons.person,
+                    size: 60,
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  );
+                },
+              ),
       );
     }
 
@@ -756,8 +791,15 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
           width: 120,
           height: 120,
           errorBuilder:
-              (context, error, stackTrace) =>
-                  const Icon(Icons.person, size: 60, color: AppColors.grey),
+              (context, error, stackTrace) => Consumer(
+                  builder: (context, ref, child) {
+                    return Icon(
+                      Icons.person,
+                      size: 60,
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    );
+                  },
+                ),
         );
       } else {
         // Handle local file
@@ -769,19 +811,34 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
             width: 120,
             height: 120,
             errorBuilder:
-                (context, error, stackTrace) =>
-                    const Icon(Icons.person, size: 60, color: AppColors.grey),
+                (context, error, stackTrace) => Consumer(
+                    builder: (context, ref, child) {
+                      return Icon(
+                        Icons.person,
+                        size: 60,
+                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      );
+                    },
+                  ),
           );
         }
       }
     }
 
     // Default: no image
-    return Container(
-      width: 120,
-      height: 120,
-      color: AppColors.lightGrey,
-      child: const Icon(Icons.person, size: 60, color: AppColors.grey),
+    return Consumer(
+      builder: (context, ref, child) {
+        return Container(
+          width: 120,
+          height: 120,
+          color: Theme.of(context).colorScheme.surface,
+          child: Icon(
+            Icons.person,
+            size: 60,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
+        );
+      },
     );
   }
 
@@ -791,50 +848,54 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
   ) {
     final currentStyle = ref.watch(cardFormProvider).cardStyle;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Card Style Customization',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.mediumSpacing),
+    return Consumer(
+      builder: (context, ref, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Card Style Customization',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppConstants.mediumSpacing),
 
-        // Font Family Selection
-        _buildFontFamilySelector(currentStyle, cardFormNotifier),
-        const SizedBox(height: AppConstants.mediumSpacing),
+            // Font Family Selection
+            _buildFontFamilySelector(currentStyle, cardFormNotifier),
+            const SizedBox(height: AppConstants.mediumSpacing),
 
-        // Font Size Slider
-        _buildFontSizeSlider(currentStyle, cardFormNotifier),
-        const SizedBox(height: AppConstants.mediumSpacing),
+            // Font Size Slider
+            _buildFontSizeSlider(currentStyle, cardFormNotifier),
+            const SizedBox(height: AppConstants.mediumSpacing),
 
-        // Font Weight Selection
-        _buildFontWeightSelector(currentStyle, cardFormNotifier),
-        const SizedBox(height: AppConstants.mediumSpacing),
+            // Font Weight Selection
+            _buildFontWeightSelector(currentStyle, cardFormNotifier),
+            const SizedBox(height: AppConstants.mediumSpacing),
 
-        // Text Color Selection
-        _buildTextColorSelector(currentStyle, cardFormNotifier),
-        const SizedBox(height: AppConstants.mediumSpacing),
+            // Text Color Selection
+            _buildTextColorSelector(currentStyle, cardFormNotifier),
+            const SizedBox(height: AppConstants.mediumSpacing),
 
-        // Background Type Selection
-        _buildBackgroundTypeSelector(currentStyle, cardFormNotifier),
-        const SizedBox(height: AppConstants.mediumSpacing),
+            // Background Type Selection
+            _buildBackgroundTypeSelector(currentStyle, cardFormNotifier),
+            const SizedBox(height: AppConstants.mediumSpacing),
 
-        // Background Color/Gradient based on type
-        if (currentStyle.backgroundType == 'solid')
-          _buildBackgroundColorSelector(currentStyle, cardFormNotifier)
-        else if (currentStyle.backgroundType == 'gradient')
-          _buildGradientColorSelector(currentStyle, cardFormNotifier),
+            // Background Color/Gradient based on type
+            if (currentStyle.backgroundType == 'solid')
+              _buildBackgroundColorSelector(currentStyle, cardFormNotifier)
+            else if (currentStyle.backgroundType == 'gradient')
+              _buildGradientColorSelector(currentStyle, cardFormNotifier),
 
-        const SizedBox(height: AppConstants.mediumSpacing),
+            const SizedBox(height: AppConstants.mediumSpacing),
 
-        // Template Selection
-        _buildTemplateSelector(currentStyle, cardFormNotifier),
-      ],
+            // Template Selection
+            _buildTemplateSelector(currentStyle, cardFormNotifier),
+          ],
+        );
+      },
     );
   }
 
@@ -842,45 +903,51 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
     CardStyle currentStyle,
     CardFormNotifier cardFormNotifier,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Font Family',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.grey),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: DropdownButtonFormField<String>(
-            value: currentStyle.fontFamily,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return Consumer(
+      builder: (context, ref, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Font Family',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
-            items:
-                AppConstants.fontFamilies.map((font) {
-                  return DropdownMenuItem<String>(
-                    value: font,
-                    child: Text(font, style: TextStyle(fontFamily: font)),
-                  );
-                }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                final updatedStyle = currentStyle.copyWith(fontFamily: value);
-                cardFormNotifier.updateCardStyle(updatedStyle);
-              }
-            },
-          ),
-        ),
-      ],
+            const SizedBox(height: AppConstants.smallSpacing),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: DropdownButtonFormField<String>(
+                value: currentStyle.fontFamily,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items:
+                    AppConstants.fontFamilies.map((font) {
+                      return DropdownMenuItem<String>(
+                        value: font,
+                        child: Text(font, style: TextStyle(fontFamily: font)),
+                      );
+                    }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    final updatedStyle = currentStyle.copyWith(fontFamily: value);
+                    cardFormNotifier.updateCardStyle(updatedStyle);
+                  }
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -888,30 +955,34 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
     CardStyle currentStyle,
     CardFormNotifier cardFormNotifier,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Font Size: ${currentStyle.fontSize.toInt()}',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        Slider(
-          value: currentStyle.fontSize,
-          min: 10.0,
-          max: 24.0,
-          divisions: 14,
-          activeColor: AppColors.yellow,
-          onChanged: (value) {
-            final updatedStyle = currentStyle.copyWith(fontSize: value);
-            cardFormNotifier.updateCardStyle(updatedStyle);
-          },
-        ),
-      ],
+    return Consumer(
+      builder: (context, ref, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Font Size: ${currentStyle.fontSize.toInt()}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppConstants.smallSpacing),
+            Slider(
+              value: currentStyle.fontSize,
+              min: 10.0,
+              max: 24.0,
+              divisions: 14,
+              activeColor: Theme.of(context).colorScheme.primary,
+              onChanged: (value) {
+                final updatedStyle = currentStyle.copyWith(fontSize: value);
+                cardFormNotifier.updateCardStyle(updatedStyle);
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -929,50 +1000,56 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
 
     const fontWeightNames = ['Light', 'Regular', 'Medium', 'Semi-Bold', 'Bold'];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Font Weight',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.grey),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: DropdownButtonFormField<FontWeight>(
-            value: currentStyle.fontWeight,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return Consumer(
+      builder: (context, ref, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Font Weight',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
-            items:
-                fontWeights.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final weight = entry.value;
-                  return DropdownMenuItem<FontWeight>(
-                    value: weight,
-                    child: Text(
-                      fontWeightNames[index],
-                      style: TextStyle(fontWeight: weight),
-                    ),
-                  );
-                }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                final updatedStyle = currentStyle.copyWith(fontWeight: value);
-                cardFormNotifier.updateCardStyle(updatedStyle);
-              }
-            },
-          ),
-        ),
-      ],
+            const SizedBox(height: AppConstants.smallSpacing),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: DropdownButtonFormField<FontWeight>(
+                value: currentStyle.fontWeight,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items:
+                    fontWeights.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final weight = entry.value;
+                      return DropdownMenuItem<FontWeight>(
+                        value: weight,
+                        child: Text(
+                          fontWeightNames[index],
+                          style: TextStyle(fontWeight: weight),
+                        ),
+                      );
+                    }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    final updatedStyle = currentStyle.copyWith(fontWeight: value);
+                    cardFormNotifier.updateCardStyle(updatedStyle);
+                  }
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -980,67 +1057,75 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
     CardStyle currentStyle,
     CardFormNotifier cardFormNotifier,
   ) {
-    final colors = [
-      Colors.black,
-      Colors.white,
-      Colors.grey[800]!,
-      AppColors.yellow,
-      Colors.blue,
-      Colors.red,
-      Colors.green,
-      Colors.purple,
-      Colors.orange,
-      Colors.teal,
-    ];
+    return Consumer(
+      builder: (context, ref, child) {
+        final colors = [
+          Theme.of(context).colorScheme.onSurface,
+          Theme.of(context).colorScheme.onPrimary,
+          Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+          Theme.of(context).colorScheme.primary,
+          Colors.blue,
+          Theme.of(context).colorScheme.error,
+          Colors.green,
+          Colors.purple,
+          Colors.orange,
+          Colors.teal,
+        ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Text Color',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        Wrap(
-          spacing: 8.0,
-          children:
-              colors.map((color) {
-                final isSelected = currentStyle.textColor == color;
-                return GestureDetector(
-                  onTap: () {
-                    final updatedStyle = currentStyle.copyWith(
-                      textColor: color,
-                    );
-                    cardFormNotifier.updateCardStyle(updatedStyle);
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? AppColors.yellow : Colors.grey,
-                        width: isSelected ? 3 : 1,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Text Color',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppConstants.smallSpacing),
+            Wrap(
+              spacing: 8.0,
+              children:
+                  colors.map((color) {
+                    final isSelected = currentStyle.textColor == color;
+                    return GestureDetector(
+                      onTap: () {
+                        final updatedStyle = currentStyle.copyWith(
+                          textColor: color,
+                        );
+                        cardFormNotifier.updateCardStyle(updatedStyle);
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            width: isSelected ? 3 : 1,
+                          ),
+                        ),
+                        child:
+                            isSelected
+                                ? Icon(
+                                  Icons.check,
+                                  color: color == Theme.of(context).colorScheme.onSurface
+                                      ? Theme.of(context).colorScheme.surface
+                                      : Theme.of(context).colorScheme.onSurface,
+                                  size: 20,
+                                )
+                                : null,
                       ),
-                    ),
-                    child:
-                        isSelected
-                            ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 20,
-                            )
-                            : null,
-                  ),
-                );
-              }).toList(),
-        ),
-      ],
+                    );
+                  }).toList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1051,59 +1136,67 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
     const backgroundTypes = ['solid', 'gradient'];
     const backgroundTypeNames = ['Solid Color', 'Gradient'];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Background Type',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        Row(
-          children:
-              backgroundTypes.asMap().entries.map((entry) {
-                final index = entry.key;
-                final type = entry.value;
-                final isSelected = currentStyle.backgroundType == type;
+    return Consumer(
+      builder: (context, ref, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Background Type',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppConstants.smallSpacing),
+            Row(
+              children:
+                  backgroundTypes.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final type = entry.value;
+                    final isSelected = currentStyle.backgroundType == type;
 
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      final updatedStyle = currentStyle.copyWith(
-                        backgroundType: type,
-                      );
-                      cardFormNotifier.updateCardStyle(updatedStyle);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.only(right: index == 0 ? 8 : 0),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      decoration: BoxDecoration(
-                        color:
-                            isSelected ? AppColors.yellow : Colors.transparent,
-                        border: Border.all(
-                          color: isSelected ? AppColors.yellow : AppColors.grey,
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          final updatedStyle = currentStyle.copyWith(
+                            backgroundType: type,
+                          );
+                          cardFormNotifier.updateCardStyle(updatedStyle);
+                        },
+                        child: Container(
+                          margin: EdgeInsets.only(right: index == 0 ? 8 : 0),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color:
+                                isSelected ? AppColors.buttonColor : Colors.transparent,
+                            border: Border.all(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            backgroundTypeNames[index],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? AppColors.black
+                                  : Theme.of(context).colorScheme.onSurface,
+                              fontWeight:
+                                  isSelected ? FontWeight.w600 : FontWeight.normal,
+                            ),
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
-                        backgroundTypeNames[index],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.black,
-                          fontWeight:
-                              isSelected ? FontWeight.w600 : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-        ),
-      ],
+                    );
+                  }).toList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1111,67 +1204,73 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
     CardStyle currentStyle,
     CardFormNotifier cardFormNotifier,
   ) {
-    final colors = [
-      Colors.white,
-      Colors.grey[100]!,
-      Colors.grey[200]!,
-      Colors.blue[50]!,
-      Colors.green[50]!,
-      Colors.yellow[50]!,
-      Colors.red[50]!,
-      Colors.purple[50]!,
-      Colors.orange[50]!,
-      Colors.teal[50]!,
-    ];
+    return Consumer(
+      builder: (context, ref, child) {
+        final colors = [
+          Theme.of(context).colorScheme.surface,
+          Theme.of(context).colorScheme.surface.withOpacity(0.9),
+          Theme.of(context).colorScheme.surface.withOpacity(0.8),
+          Colors.blue[50]!,
+          Colors.green[50]!,
+          Colors.yellow[50]!,
+          Colors.red[50]!,
+          Colors.purple[50]!,
+          Colors.orange[50]!,
+          Colors.teal[50]!,
+        ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Background Color',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        Wrap(
-          spacing: 8.0,
-          children:
-              colors.map((color) {
-                final isSelected = currentStyle.backgroundColor == color;
-                return GestureDetector(
-                  onTap: () {
-                    final updatedStyle = currentStyle.copyWith(
-                      backgroundColor: color,
-                    );
-                    cardFormNotifier.updateCardStyle(updatedStyle);
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? AppColors.yellow : Colors.grey,
-                        width: isSelected ? 3 : 1,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Background Color',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppConstants.smallSpacing),
+            Wrap(
+              spacing: 8.0,
+              children:
+                  colors.map((color) {
+                    final isSelected = currentStyle.backgroundColor == color;
+                    return GestureDetector(
+                      onTap: () {
+                        final updatedStyle = currentStyle.copyWith(
+                          backgroundColor: color,
+                        );
+                        cardFormNotifier.updateCardStyle(updatedStyle);
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            width: isSelected ? 3 : 1,
+                          ),
+                        ),
+                        child:
+                            isSelected
+                                ? Icon(
+                                  Icons.check,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 20,
+                                )
+                                : null,
                       ),
-                    ),
-                    child:
-                        isSelected
-                            ? const Icon(
-                              Icons.check,
-                              color: AppColors.yellow,
-                              size: 20,
-                            )
-                            : null,
-                  ),
-                );
-              }).toList(),
-        ),
-      ],
+                    );
+                  }).toList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1179,73 +1278,79 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
     CardStyle currentStyle,
     CardFormNotifier cardFormNotifier,
   ) {
-    final gradientPresets = [
-      [Colors.white, Colors.grey[100]!],
-      [Colors.blue[50]!, Colors.blue[100]!],
-      [Colors.green[50]!, Colors.green[100]!],
-      [Colors.yellow[50]!, Colors.yellow[100]!],
-      [Colors.red[50]!, Colors.red[100]!],
-      [Colors.purple[50]!, Colors.purple[100]!],
-      [Colors.orange[50]!, Colors.orange[100]!],
-      [Colors.teal[50]!, Colors.teal[100]!],
-    ];
+    return Consumer(
+      builder: (context, ref, child) {
+        final gradientPresets = [
+          [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withOpacity(0.9)],
+          [Colors.blue[50]!, Colors.blue[100]!],
+          [Colors.green[50]!, Colors.green[100]!],
+          [Colors.yellow[50]!, Colors.yellow[100]!],
+          [Colors.red[50]!, Colors.red[100]!],
+          [Colors.purple[50]!, Colors.purple[100]!],
+          [Colors.orange[50]!, Colors.orange[100]!],
+          [Colors.teal[50]!, Colors.teal[100]!],
+        ];
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Gradient Colors',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        Wrap(
-          spacing: 8.0,
-          children:
-              gradientPresets.map((gradient) {
-                final isSelected =
-                    currentStyle.gradientColors.length == 2 &&
-                    currentStyle.gradientColors[0] == gradient[0] &&
-                    currentStyle.gradientColors[1] == gradient[1];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Gradient Colors',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: AppConstants.smallSpacing),
+            Wrap(
+              spacing: 8.0,
+              children:
+                  gradientPresets.map((gradient) {
+                    final isSelected =
+                        currentStyle.gradientColors.length == 2 &&
+                        currentStyle.gradientColors[0] == gradient[0] &&
+                        currentStyle.gradientColors[1] == gradient[1];
 
-                return GestureDetector(
-                  onTap: () {
-                    final updatedStyle = currentStyle.copyWith(
-                      gradientColors: gradient,
+                    return GestureDetector(
+                      onTap: () {
+                        final updatedStyle = currentStyle.copyWith(
+                          gradientColors: gradient,
+                        );
+                        cardFormNotifier.updateCardStyle(updatedStyle);
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: gradient,
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                            width: isSelected ? 3 : 1,
+                          ),
+                        ),
+                        child:
+                            isSelected
+                                ? Icon(
+                                  Icons.check,
+                                  color: Theme.of(context).colorScheme.primary,
+                                  size: 20,
+                                )
+                                : null,
+                      ),
                     );
-                    cardFormNotifier.updateCardStyle(updatedStyle);
-                  },
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: gradient,
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? AppColors.yellow : Colors.grey,
-                        width: isSelected ? 3 : 1,
-                      ),
-                    ),
-                    child:
-                        isSelected
-                            ? const Icon(
-                              Icons.check,
-                              color: AppColors.yellow,
-                              size: 20,
-                            )
-                            : null,
-                  ),
-                );
-              }).toList(),
-        ),
-      ],
+                  }).toList(),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1253,45 +1358,51 @@ class _ProfileCardEditScreenState extends ConsumerState<ProfileCardEditScreen>
     CardStyle currentStyle,
     CardFormNotifier cardFormNotifier,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Card Template',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: AppColors.black,
-          ),
-        ),
-        const SizedBox(height: AppConstants.smallSpacing),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: AppColors.grey),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: DropdownButtonFormField<String>(
-            value: currentStyle.template,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return Consumer(
+      builder: (context, ref, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Card Template',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
-            items:
-                AppConstants.cardTemplates.map((template) {
-                  return DropdownMenuItem<String>(
-                    value: template,
-                    child: Text(template),
-                  );
-                }).toList(),
-            onChanged: (value) {
-              if (value != null) {
-                final updatedStyle = currentStyle.copyWith(template: value);
-                cardFormNotifier.updateCardStyle(updatedStyle);
-              }
-            },
-          ),
-        ),
-      ],
+            const SizedBox(height: AppConstants.smallSpacing),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: DropdownButtonFormField<String>(
+                value: currentStyle.template,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                ),
+                items:
+                    AppConstants.cardTemplates.map((template) {
+                      return DropdownMenuItem<String>(
+                        value: template,
+                        child: Text(template),
+                      );
+                    }).toList(),
+                onChanged: (value) {
+                  if (value != null) {
+                    final updatedStyle = currentStyle.copyWith(template: value);
+                    cardFormNotifier.updateCardStyle(updatedStyle);
+                  }
+                },
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

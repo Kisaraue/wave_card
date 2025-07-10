@@ -6,15 +6,18 @@ import '../../providers/profile_card_provider.dart';
 import '../../data/models/profile_card.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/toast_utils.dart';
 
 class ProfileCardCreationScreen extends ConsumerStatefulWidget {
   const ProfileCardCreationScreen({super.key});
 
   @override
-  ConsumerState<ProfileCardCreationScreen> createState() => _ProfileCardCreationScreenState();
+  ConsumerState<ProfileCardCreationScreen> createState() =>
+      _ProfileCardCreationScreenState();
 }
 
-class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationScreen> {
+class _ProfileCardCreationScreenState
+    extends ConsumerState<ProfileCardCreationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _jobTitleController = TextEditingController();
@@ -36,7 +39,9 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
 
   @override
   Widget build(BuildContext context) {
-    
+    // Initialize toast for this context
+    ToastUtils.init(context);
+
     final cardForm = ref.watch(cardFormProvider);
     final cardFormNotifier = ref.watch(cardFormProvider.notifier);
 
@@ -52,10 +57,10 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
         actions: [
           TextButton(
             onPressed: () => _saveCard(context, ref, _formKey),
-            child: const Text(
+            child: Text(
               'Save',
               style: TextStyle(
-                color: AppColors.yellow,
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -63,13 +68,13 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
         ],
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.white,
-              AppColors.lightGrey,
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
             ],
           ),
         ),
@@ -102,20 +107,16 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Card Preview',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.mediumSpacing),
-        Center(
-          child: ProfileCardWidget(
-            profileCard: profileCard,
-          ),
-        ),
+        Center(child: ProfileCardWidget(profileCard: profileCard)),
       ],
     );
   }
@@ -138,12 +139,12 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Basic Information',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.black,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: AppConstants.mediumSpacing),
@@ -171,12 +172,12 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
               onChanged: (value) => cardFormNotifier.updateCompany(value),
             ),
             const SizedBox(height: AppConstants.largeSpacing),
-            const Text(
+            Text(
               'Contact Information',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: AppColors.black,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: AppConstants.mediumSpacing),
@@ -218,10 +219,7 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
                 ),
                 child: const Text(
                   'Save Card',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -246,23 +244,22 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.grey),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.yellow, width: 2),
+          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
         ),
       ),
-      validator: required
-          ? (value) {
-              if (value == null || value.isEmpty) {
-                return 'This field is required';
+      validator:
+          required
+              ? (value) {
+                if (value == null || value.isEmpty) {
+                  return 'This field is required';
+                }
+                return null;
               }
-              return null;
-            }
-          : null,
+              : null,
       onChanged: onChanged,
     );
   }
@@ -280,98 +277,98 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
       if (ref != null) {
         final cardForm = ref.read(cardFormProvider);
         final profileCardNotifier = ref.read(profileCardProvider.notifier);
-        
+
         await profileCardNotifier.addProfileCard(cardForm);
-        
+
         if (context.mounted) {
           ref.read(cardFormProvider.notifier).reset();
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Profile card created successfully!'),
-              backgroundColor: AppColors.yellow,
-            ),
+
+          ToastUtils.showSuccess(
+            'Profile card created successfully!',
+            isDarkMode: false,
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving card: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastUtils.showError('Error saving card: $e', isDarkMode: false);
       }
     }
   }
 
-  Widget _buildStyleCustomization(BuildContext context, CardFormNotifier cardFormNotifier) {
+  Widget _buildStyleCustomization(
+    BuildContext context,
+    CardFormNotifier cardFormNotifier,
+  ) {
     final currentStyle = ref.watch(cardFormProvider).cardStyle;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Card Style Customization',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.mediumSpacing),
-        
+
         // Font Family Selection
         _buildFontFamilySelector(currentStyle, cardFormNotifier),
         const SizedBox(height: AppConstants.mediumSpacing),
-        
+
         // Font Size Slider
         _buildFontSizeSlider(currentStyle, cardFormNotifier),
         const SizedBox(height: AppConstants.mediumSpacing),
-        
+
         // Font Weight Selection
         _buildFontWeightSelector(currentStyle, cardFormNotifier),
         const SizedBox(height: AppConstants.mediumSpacing),
-        
+
         // Text Color Selection
         _buildTextColorSelector(currentStyle, cardFormNotifier),
         const SizedBox(height: AppConstants.mediumSpacing),
-        
+
         // Background Type Selection
         _buildBackgroundTypeSelector(currentStyle, cardFormNotifier),
         const SizedBox(height: AppConstants.mediumSpacing),
-        
+
         // Background Color/Gradient based on type
         if (currentStyle.backgroundType == 'solid')
           _buildBackgroundColorSelector(currentStyle, cardFormNotifier)
         else if (currentStyle.backgroundType == 'gradient')
           _buildGradientColorSelector(currentStyle, cardFormNotifier),
-        
+
         const SizedBox(height: AppConstants.mediumSpacing),
-        
+
         // Template Selection
         _buildTemplateSelector(currentStyle, cardFormNotifier),
       ],
     );
   }
 
-  Widget _buildFontFamilySelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+  Widget _buildFontFamilySelector(
+    CardStyle currentStyle,
+    CardFormNotifier cardFormNotifier,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Font Family',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.grey),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
@@ -380,15 +377,13 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            items: AppConstants.fontFamilies.map((font) {
-              return DropdownMenuItem<String>(
-                value: font,
-                child: Text(
-                  font,
-                  style: TextStyle(fontFamily: font),
-                ),
-              );
-            }).toList(),
+            items:
+                AppConstants.fontFamilies.map((font) {
+                  return DropdownMenuItem<String>(
+                    value: font,
+                    child: Text(font, style: TextStyle(fontFamily: font)),
+                  );
+                }).toList(),
             onChanged: (value) {
               if (value != null) {
                 final updatedStyle = currentStyle.copyWith(fontFamily: value);
@@ -401,16 +396,19 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
     );
   }
 
-  Widget _buildFontSizeSlider(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+  Widget _buildFontSizeSlider(
+    CardStyle currentStyle,
+    CardFormNotifier cardFormNotifier,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Font Size: ${currentStyle.fontSize.toInt()}',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
@@ -419,7 +417,7 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
           min: 10.0,
           max: 24.0,
           divisions: 14,
-          activeColor: AppColors.yellow,
+          activeColor: Theme.of(context).colorScheme.primary,
           onChanged: (value) {
             final updatedStyle = currentStyle.copyWith(fontSize: value);
             cardFormNotifier.updateCardStyle(updatedStyle);
@@ -429,7 +427,10 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
     );
   }
 
-  Widget _buildFontWeightSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+  Widget _buildFontWeightSelector(
+    CardStyle currentStyle,
+    CardFormNotifier cardFormNotifier,
+  ) {
     const fontWeights = [
       FontWeight.w300,
       FontWeight.w400,
@@ -437,30 +438,24 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
       FontWeight.w600,
       FontWeight.w700,
     ];
-    
-    const fontWeightNames = [
-      'Light',
-      'Regular',
-      'Medium',
-      'Semi-Bold',
-      'Bold',
-    ];
+
+    const fontWeightNames = ['Light', 'Regular', 'Medium', 'Semi-Bold', 'Bold'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Font Weight',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.grey),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<FontWeight>(
@@ -469,17 +464,18 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            items: fontWeights.asMap().entries.map((entry) {
-              final index = entry.key;
-              final weight = entry.value;
-              return DropdownMenuItem<FontWeight>(
-                value: weight,
-                child: Text(
-                  fontWeightNames[index],
-                  style: TextStyle(fontWeight: weight),
-                ),
-              );
-            }).toList(),
+            items:
+                fontWeights.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final weight = entry.value;
+                  return DropdownMenuItem<FontWeight>(
+                    value: weight,
+                    child: Text(
+                      fontWeightNames[index],
+                      style: TextStyle(fontWeight: weight),
+                    ),
+                  );
+                }).toList(),
             onChanged: (value) {
               if (value != null) {
                 final updatedStyle = currentStyle.copyWith(fontWeight: value);
@@ -492,14 +488,17 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
     );
   }
 
-  Widget _buildTextColorSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+  Widget _buildTextColorSelector(
+    CardStyle currentStyle,
+    CardFormNotifier cardFormNotifier,
+  ) {
     final colors = [
-      Colors.black,
-      Colors.white,
-      Colors.grey[800]!,
-      AppColors.yellow,
+      Theme.of(context).colorScheme.onSurface,
+      Theme.of(context).colorScheme.surface,
+      Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+      Theme.of(context).colorScheme.primary,
       Colors.blue,
-      Colors.red,
+      Theme.of(context).colorScheme.error,
       Colors.green,
       Colors.purple,
       Colors.orange,
@@ -509,114 +508,129 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Text Color',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
         Wrap(
           spacing: 8.0,
-          children: colors.map((color) {
-            final isSelected = currentStyle.textColor == color;
-            return GestureDetector(
-              onTap: () {
-                final updatedStyle = currentStyle.copyWith(textColor: color);
-                cardFormNotifier.updateCardStyle(updatedStyle);
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? AppColors.yellow : Colors.grey,
-                    width: isSelected ? 3 : 1,
+          children:
+              colors.map((color) {
+                final isSelected = currentStyle.textColor == color;
+                return GestureDetector(
+                  onTap: () {
+                    final updatedStyle = currentStyle.copyWith(
+                      textColor: color,
+                    );
+                    cardFormNotifier.updateCardStyle(updatedStyle);
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        width: isSelected ? 3 : 1,
+                      ),
+                    ),
+                    child:
+                        isSelected
+                            ? Icon(
+                              Icons.check,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              size: 20,
+                            )
+                            : null,
                   ),
-                ),
-                child: isSelected
-                    ? const Icon(
-                        Icons.check,
-                        color: Colors.white,
-                        size: 20,
-                      )
-                    : null,
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildBackgroundTypeSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+  Widget _buildBackgroundTypeSelector(
+    CardStyle currentStyle,
+    CardFormNotifier cardFormNotifier,
+  ) {
     const backgroundTypes = ['solid', 'gradient'];
     const backgroundTypeNames = ['Solid Color', 'Gradient'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Background Type',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
         Row(
-          children: backgroundTypes.asMap().entries.map((entry) {
-            final index = entry.key;
-            final type = entry.value;
-            final isSelected = currentStyle.backgroundType == type;
-            
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  final updatedStyle = currentStyle.copyWith(backgroundType: type);
-                  cardFormNotifier.updateCardStyle(updatedStyle);
-                },
-                child: Container(
-                  margin: EdgeInsets.only(right: index == 0 ? 8 : 0),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppColors.yellow : Colors.transparent,
-                    border: Border.all(
-                      color: isSelected ? AppColors.yellow : AppColors.grey,
+          children:
+              backgroundTypes.asMap().entries.map((entry) {
+                final index = entry.key;
+                final type = entry.value;
+                final isSelected = currentStyle.backgroundType == type;
+
+                return Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      final updatedStyle = currentStyle.copyWith(
+                        backgroundType: type,
+                      );
+                      cardFormNotifier.updateCardStyle(updatedStyle);
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(right: index == 0 ? 8 : 0),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                        border: Border.all(
+                          color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        backgroundTypeNames[index],
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Text(
-                    backgroundTypeNames[index],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.black,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildBackgroundColorSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+  Widget _buildBackgroundColorSelector(
+    CardStyle currentStyle,
+    CardFormNotifier cardFormNotifier,
+  ) {
     final colors = [
-      Colors.white,
-      Colors.grey[100]!,
-      Colors.grey[200]!,
+      Theme.of(context).colorScheme.surface,
+      Theme.of(context).colorScheme.surface.withOpacity(0.8),
+      Theme.of(context).colorScheme.onSurface.withOpacity(0.1),
       Colors.blue[50]!,
       Colors.green[50]!,
       Colors.yellow[50]!,
-      Colors.red[50]!,
+      Theme.of(context).colorScheme.errorContainer,
       Colors.purple[50]!,
       Colors.orange[50]!,
       Colors.teal[50]!,
@@ -625,57 +639,64 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Background Color',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
         Wrap(
           spacing: 8.0,
-          children: colors.map((color) {
-            final isSelected = currentStyle.backgroundColor == color;
-            return GestureDetector(
-              onTap: () {
-                final updatedStyle = currentStyle.copyWith(backgroundColor: color);
-                cardFormNotifier.updateCardStyle(updatedStyle);
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? AppColors.yellow : Colors.grey,
-                    width: isSelected ? 3 : 1,
+          children:
+              colors.map((color) {
+                final isSelected = currentStyle.backgroundColor == color;
+                return GestureDetector(
+                  onTap: () {
+                    final updatedStyle = currentStyle.copyWith(
+                      backgroundColor: color,
+                    );
+                    cardFormNotifier.updateCardStyle(updatedStyle);
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: color,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        width: isSelected ? 3 : 1,
+                      ),
+                    ),
+                    child:
+                        isSelected
+                            ? Icon(
+                              Icons.check,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 20,
+                            )
+                            : null,
                   ),
-                ),
-                child: isSelected
-                    ? const Icon(
-                        Icons.check,
-                        color: AppColors.yellow,
-                        size: 20,
-                      )
-                    : null,
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildGradientColorSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+  Widget _buildGradientColorSelector(
+    CardStyle currentStyle,
+    CardFormNotifier cardFormNotifier,
+  ) {
     final gradientPresets = [
-      [Colors.white, Colors.grey[100]!],
+      [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withOpacity(0.8)],
       [Colors.blue[50]!, Colors.blue[100]!],
       [Colors.green[50]!, Colors.green[100]!],
       [Colors.yellow[50]!, Colors.yellow[100]!],
-      [Colors.red[50]!, Colors.red[100]!],
+      [Theme.of(context).colorScheme.errorContainer, Theme.of(context).colorScheme.errorContainer.withOpacity(0.7)],
       [Colors.purple[50]!, Colors.purple[100]!],
       [Colors.orange[50]!, Colors.orange[100]!],
       [Colors.teal[50]!, Colors.teal[100]!],
@@ -684,73 +705,81 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Gradient Colors',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
         Wrap(
           spacing: 8.0,
-          children: gradientPresets.map((gradient) {
-            final isSelected = currentStyle.gradientColors.length == 2 &&
-                currentStyle.gradientColors[0] == gradient[0] &&
-                currentStyle.gradientColors[1] == gradient[1];
-            
-            return GestureDetector(
-              onTap: () {
-                final updatedStyle = currentStyle.copyWith(gradientColors: gradient);
-                cardFormNotifier.updateCardStyle(updatedStyle);
-              },
-              child: Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: gradient,
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+          children:
+              gradientPresets.map((gradient) {
+                final isSelected =
+                    currentStyle.gradientColors.length == 2 &&
+                    currentStyle.gradientColors[0] == gradient[0] &&
+                    currentStyle.gradientColors[1] == gradient[1];
+
+                return GestureDetector(
+                  onTap: () {
+                    final updatedStyle = currentStyle.copyWith(
+                      gradientColors: gradient,
+                    );
+                    cardFormNotifier.updateCardStyle(updatedStyle);
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: gradient,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        width: isSelected ? 3 : 1,
+                      ),
+                    ),
+                    child:
+                        isSelected
+                            ? Icon(
+                              Icons.check,
+                              color: Theme.of(context).colorScheme.primary,
+                              size: 20,
+                            )
+                            : null,
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected ? AppColors.yellow : Colors.grey,
-                    width: isSelected ? 3 : 1,
-                  ),
-                ),
-                child: isSelected
-                    ? const Icon(
-                        Icons.check,
-                        color: AppColors.yellow,
-                        size: 20,
-                      )
-                    : null,
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildTemplateSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+  Widget _buildTemplateSelector(
+    CardStyle currentStyle,
+    CardFormNotifier cardFormNotifier,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Card Template',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.grey),
+            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
@@ -759,12 +788,13 @@ class _ProfileCardCreationScreenState extends ConsumerState<ProfileCardCreationS
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
-            items: AppConstants.cardTemplates.map((template) {
-              return DropdownMenuItem<String>(
-                value: template,
-                child: Text(template),
-              );
-            }).toList(),
+            items:
+                AppConstants.cardTemplates.map((template) {
+                  return DropdownMenuItem<String>(
+                    value: template,
+                    child: Text(template),
+                  );
+                }).toList(),
             onChanged: (value) {
               if (value != null) {
                 final updatedStyle = currentStyle.copyWith(template: value);

@@ -133,23 +133,7 @@ class SecureStorageService {
     }
   }
 
-  // Theme and Settings
-  Future<String?> getThemePreference() async {
-    try {
-      return await _secureStorage.read(key: AppConstants.themeKey);
-    } catch (e) {
-      throw StorageException('Failed to get theme preference: $e');
-    }
-  }
-
-  Future<void> setThemePreference(String theme) async {
-    try {
-      await _secureStorage.write(key: AppConstants.themeKey, value: theme);
-    } catch (e) {
-      throw StorageException('Failed to set theme preference: $e');
-    }
-  }
-
+  // Security Settings
   Future<Map<String, dynamic>?> getSecuritySettings() async {
     try {
       final jsonString = await _secureStorage.read(key: AppConstants.securityKey);

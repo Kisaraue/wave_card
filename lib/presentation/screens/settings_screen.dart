@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_colors.dart';
-import '../../providers/theme_provider.dart';
 
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeProvider);
-    final themeNotifier = ref.read(themeProvider.notifier);
+  Widget build(BuildContext context) {
 
     return Scaffold(
       appBar: AppBar(
@@ -18,9 +14,6 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          _buildSectionHeader('Appearance'),
-          _buildThemeSelector(themeMode, themeNotifier),
-          const SizedBox(height: 24),
           _buildSectionHeader('About'),
           _buildAboutTile(context),
           const SizedBox(height: 24),
@@ -32,57 +25,21 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-          color: AppColors.black,
+    return Builder(
+      builder: (context) => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Text(
+          title,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildThemeSelector(AppThemeMode themeMode, ThemeNotifier themeNotifier) {
-    return Card(
-      child: Column(
-        children: [
-          RadioListTile<AppThemeMode>(
-            title: const Text('Light Mode'),
-            value: AppThemeMode.light,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                themeNotifier.setTheme(value);
-              }
-            },
-          ),
-          RadioListTile<AppThemeMode>(
-            title: const Text('Dark Mode'),
-            value: AppThemeMode.dark,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                themeNotifier.setTheme(value);
-              }
-            },
-          ),
-          RadioListTile<AppThemeMode>(
-            title: const Text('System Default'),
-            value: AppThemeMode.system,
-            groupValue: themeMode,
-            onChanged: (value) {
-              if (value != null) {
-                themeNotifier.setTheme(value);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildAboutTile(BuildContext context) {
     return Card(
@@ -107,15 +64,17 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   Widget _buildDataTile() {
-    return Card(
-      child: ListTile(
-        leading: const Icon(Icons.storage),
-        title: const Text('Clear All Data'),
-        subtitle: const Text('Delete all profile cards and contacts'),
-        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.red),
-        onTap: () {
-          // TODO: Implement clear data functionality
-        },
+    return Builder(
+      builder: (context) => Card(
+        child: ListTile(
+          leading: const Icon(Icons.storage),
+          title: const Text('Clear All Data'),
+          subtitle: const Text('Delete all profile cards and contacts'),
+          trailing: Icon(Icons.arrow_forward_ios, color: Theme.of(context).colorScheme.error),
+          onTap: () {
+            // TODO: Implement clear data functionality
+          },
+        ),
       ),
     );
   }

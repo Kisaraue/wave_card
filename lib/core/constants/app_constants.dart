@@ -5,7 +5,6 @@ class AppConstants {
   // Storage Keys
   static const String userProfilesKey = 'user_profiles';
   static const String contactsKey = 'contacts';
-  static const String themeKey = 'theme_preference';
   static const String securityKey = 'security_settings';
   
   // Animation Durations

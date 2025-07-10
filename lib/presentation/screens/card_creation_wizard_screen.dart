@@ -9,6 +9,7 @@ import '../../providers/profile_card_provider.dart';
 import '../../data/models/profile_card.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/utils/toast_utils.dart';
 
 class CardCreationWizardScreen extends ConsumerStatefulWidget {
   const CardCreationWizardScreen({super.key});
@@ -57,7 +58,11 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
 
   @override
   Widget build(BuildContext context) {
+    // Initialize toast for this context
+    ToastUtils.init(context);
+    
     final cardForm = ref.watch(cardFormProvider);
+    final colorScheme = Theme.of(context).colorScheme;
     
     return Scaffold(
       appBar: AppBar(
@@ -70,13 +75,13 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
         ),
       ),
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.white,
-              AppColors.lightGrey,
+              colorScheme.surface,
+              colorScheme.surfaceContainerLowest,
             ],
           ),
         ),
@@ -108,6 +113,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildStepIndicator() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(AppConstants.mediumSpacing),
       child: Row(
@@ -117,7 +123,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
               margin: const EdgeInsets.symmetric(horizontal: 4),
               height: 4,
               decoration: BoxDecoration(
-                color: index <= _currentStep ? AppColors.yellow : AppColors.grey,
+                color: index <= _currentStep ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -128,17 +134,18 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildCardPreview(ProfileCard profileCard) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppConstants.mediumSpacing),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Card Preview',
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppColors.black,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: AppConstants.smallSpacing),
@@ -156,6 +163,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildPersonalDetailsStep() {
+    final colorScheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppConstants.mediumSpacing),
       child: GlassmorphismContainer(
@@ -165,20 +173,20 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Personal Details',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.black,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: AppConstants.smallSpacing),
-              const Text(
+              Text(
                 'Please provide your basic information (Required)',
                 style: TextStyle(
                   fontSize: 14,
-                  color: AppColors.grey,
+                  color: colorScheme.onSurface.withOpacity(0.6),
                 ),
               ),
               const SizedBox(height: AppConstants.largeSpacing),
@@ -237,6 +245,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildProfilePictureStep() {
+    final colorScheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppConstants.mediumSpacing),
       child: GlassmorphismContainer(
@@ -244,20 +253,20 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Profile Picture',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.black,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: AppConstants.smallSpacing),
-            const Text(
+            Text(
               'Add a profile picture to personalize your card (Optional)',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.grey,
+                color: colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
             const SizedBox(height: AppConstants.largeSpacing),
@@ -269,7 +278,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.grey, width: 2),
+                      border: Border.all(color: colorScheme.onSurface.withOpacity(0.6), width: 2),
                       image: _profileImage != null
                           ? DecorationImage(
                               image: FileImage(_profileImage!),
@@ -278,10 +287,10 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                           : null,
                     ),
                     child: _profileImage == null
-                        ? const Icon(
+                        ? Icon(
                             Icons.person,
                             size: 60,
-                            color: AppColors.grey,
+                            color: colorScheme.onSurface.withOpacity(0.6),
                           )
                         : null,
                   ),
@@ -294,8 +303,8 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                         icon: const Icon(Icons.camera_alt),
                         label: const Text('Camera'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.yellow,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.buttonColor,
+                          foregroundColor: AppColors.black,
                         ),
                       ),
                       ElevatedButton.icon(
@@ -303,8 +312,8 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                         icon: const Icon(Icons.photo_library),
                         label: const Text('Gallery'),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.yellow,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AppColors.buttonColor,
+                          foregroundColor: AppColors.black,
                         ),
                       ),
                     ],
@@ -318,9 +327,9 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                         });
                         _updateCardForm();
                       },
-                      child: const Text(
+                      child: Text(
                         'Remove Photo',
-                        style: TextStyle(color: Colors.red),
+                        style: TextStyle(color: colorScheme.error),
                       ),
                     ),
                   ],
@@ -334,6 +343,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildSocialMediaStep() {
+    final colorScheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppConstants.mediumSpacing),
       child: GlassmorphismContainer(
@@ -341,20 +351,20 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Social Media',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.black,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: AppConstants.smallSpacing),
-            const Text(
+            Text(
               'Add your social media links (Optional)',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.grey,
+                color: colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
             const SizedBox(height: AppConstants.largeSpacing),
@@ -401,6 +411,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   Widget _buildCustomizationStep() {
     final cardForm = ref.watch(cardFormProvider);
     final cardFormNotifier = ref.watch(cardFormProvider.notifier);
+    final colorScheme = Theme.of(context).colorScheme;
     
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppConstants.mediumSpacing),
@@ -409,20 +420,20 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Customization',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.black,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(height: AppConstants.smallSpacing),
-            const Text(
+            Text(
               'Customize your card appearance (Optional)',
               style: TextStyle(
                 fontSize: 14,
-                color: AppColors.grey,
+                color: colorScheme.onSurface.withOpacity(0.6),
               ),
             ),
             const SizedBox(height: AppConstants.largeSpacing),
@@ -434,6 +445,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildNavigationButtons() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(AppConstants.mediumSpacing),
       child: Row(
@@ -443,8 +455,8 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
               child: ElevatedButton(
                 onPressed: _previousStep,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.grey,
-                  foregroundColor: Colors.white,
+                  backgroundColor: colorScheme.onSurface.withOpacity(0.6),
+                  foregroundColor: colorScheme.onPrimary,
                 ),
                 child: const Text('Previous'),
               ),
@@ -456,8 +468,8 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                 child: ElevatedButton(
                   onPressed: _canProceedFromStep0() ? _nextStep : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.yellow,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.buttonColor,
+                    foregroundColor: AppColors.black,
                   ),
                   child: const Text('Next'),
                 ),
@@ -467,8 +479,8 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                 child: ElevatedButton(
                   onPressed: _nextStep,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.yellow,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.buttonColor,
+                    foregroundColor: AppColors.black,
                   ),
                   child: const Text('Next'),
                 ),
@@ -487,8 +499,8 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
               child: ElevatedButton(
                 onPressed: _saveCard,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.yellow,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppColors.buttonColor,
+                  foregroundColor: AppColors.black,
                 ),
                 child: const Text('Create Card'),
               ),
@@ -506,12 +518,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
 
   void _nextStep() {
     if (_currentStep == 0 && !_canProceedFromStep0()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill in all required fields'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ToastUtils.showError('Please fill in all required fields', isDarkMode: false);
       return;
     }
     
@@ -557,16 +564,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
           errorMessage = '${source == ImageSource.camera ? 'Camera' : 'Gallery'} permission denied. Please enable it in device settings.';
         }
         
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: Colors.red,
-            action: SnackBarAction(
-              label: 'Settings',
-              onPressed: () => openAppSettings(),
-            ),
-          ),
-        );
+        ToastUtils.showError(errorMessage, isDarkMode: false);
       }
     }
   }
@@ -601,19 +599,20 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
     int maxLines = 1,
     Function(String)? onChanged,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       maxLines: maxLines,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: AppColors.grey),
+        prefixIcon: Icon(icon, color: colorScheme.onSurface.withOpacity(0.6)),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.yellow, width: 2),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
       ),
       validator: required
@@ -649,21 +648,22 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildFontFamilySelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Font Family',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: AppColors.grey),
+            border: Border.all(color: colorScheme.onSurface.withOpacity(0.6)),
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
@@ -691,15 +691,16 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildFontSizeSlider(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Font Size: ${currentStyle.fontSize.toInt()}',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
@@ -708,7 +709,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
           min: 10.0,
           max: 24.0,
           divisions: 14,
-          activeColor: AppColors.yellow,
+          activeColor: colorScheme.primary,
           onChanged: (value) {
             final updatedStyle = currentStyle.copyWith(fontSize: value);
             cardFormNotifier.updateCardStyle(updatedStyle);
@@ -719,26 +720,27 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildTextColorSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+    final colorScheme = Theme.of(context).colorScheme;
     final colors = [
-      Colors.black,
-      Colors.white,
-      Colors.grey[800]!,
-      AppColors.yellow,
+      colorScheme.onSurface,
+      colorScheme.onPrimary,
+      colorScheme.onSurface.withOpacity(0.8),
+      colorScheme.primary,
       Colors.blue,
-      Colors.red,
-      Colors.green,
+      colorScheme.error,
+      colorScheme.tertiary,
       Colors.purple,
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Text Color',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
@@ -758,14 +760,14 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                   color: color,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppColors.yellow : Colors.grey,
+                    color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.6),
                     width: isSelected ? 3 : 1,
                   ),
                 ),
                 child: isSelected
-                    ? const Icon(
+                    ? Icon(
                         Icons.check,
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                         size: 20,
                       )
                     : null,
@@ -778,18 +780,19 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildBackgroundTypeSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+    final colorScheme = Theme.of(context).colorScheme;
     const backgroundTypes = ['solid', 'gradient'];
     const backgroundTypeNames = ['Solid', 'Gradient'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Background Type',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
@@ -809,9 +812,9 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                   margin: EdgeInsets.only(right: index == 0 ? 8 : 0),
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: isSelected ? AppColors.yellow : Colors.transparent,
+                    color: isSelected ? colorScheme.primary : Colors.transparent,
                     border: Border.all(
-                      color: isSelected ? AppColors.yellow : AppColors.grey,
+                      color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.6),
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -819,7 +822,7 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                     backgroundTypeNames[index],
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.black,
+                      color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
                       fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
@@ -833,13 +836,14 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildBackgroundColorSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+    final colorScheme = Theme.of(context).colorScheme;
     final colors = [
-      Colors.white,
-      Colors.grey[100]!,
+      colorScheme.surface,
+      colorScheme.surfaceContainerLowest,
       Colors.blue[50]!,
-      Colors.green[50]!,
-      Colors.yellow[50]!,
-      Colors.red[50]!,
+      colorScheme.tertiary.withOpacity(0.1),
+      colorScheme.primary.withOpacity(0.1),
+      colorScheme.error.withOpacity(0.1),
       Colors.purple[50]!,
       Colors.orange[50]!,
     ];
@@ -847,12 +851,12 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Background Color',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
@@ -872,14 +876,14 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                   color: color,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppColors.yellow : Colors.grey,
+                    color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.6),
                     width: isSelected ? 3 : 1,
                   ),
                 ),
                 child: isSelected
-                    ? const Icon(
+                    ? Icon(
                         Icons.check,
-                        color: AppColors.yellow,
+                        color: colorScheme.primary,
                         size: 20,
                       )
                     : null,
@@ -892,24 +896,25 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
   }
 
   Widget _buildGradientColorSelector(CardStyle currentStyle, CardFormNotifier cardFormNotifier) {
+    final colorScheme = Theme.of(context).colorScheme;
     final gradientPresets = [
-      [Colors.white, Colors.grey[100]!],
+      [colorScheme.surface, colorScheme.surfaceContainerLowest],
       [Colors.blue[50]!, Colors.blue[100]!],
-      [Colors.green[50]!, Colors.green[100]!],
-      [Colors.yellow[50]!, Colors.yellow[100]!],
-      [Colors.red[50]!, Colors.red[100]!],
+      [colorScheme.tertiary.withOpacity(0.1), colorScheme.tertiary.withOpacity(0.2)],
+      [colorScheme.primary.withOpacity(0.1), colorScheme.primary.withOpacity(0.2)],
+      [colorScheme.error.withOpacity(0.1), colorScheme.error.withOpacity(0.2)],
       [Colors.purple[50]!, Colors.purple[100]!],
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Gradient Colors',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppColors.black,
+            color: colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
@@ -936,14 +941,14 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
                   ),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? AppColors.yellow : Colors.grey,
+                    color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.6),
                     width: isSelected ? 3 : 1,
                   ),
                 ),
                 child: isSelected
-                    ? const Icon(
+                    ? Icon(
                         Icons.check,
-                        color: AppColors.yellow,
+                        color: colorScheme.primary,
                         size: 20,
                       )
                     : null,
@@ -965,21 +970,11 @@ class _CardCreationWizardScreenState extends ConsumerState<CardCreationWizardScr
       if (mounted) {
         ref.read(cardFormProvider.notifier).reset();
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profile card created successfully!'),
-            backgroundColor: AppColors.yellow,
-          ),
-        );
+        ToastUtils.showSuccess('Profile card created successfully!', isDarkMode: false);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error saving card: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ToastUtils.showError('Error saving card: $e', isDarkMode: false);
       }
     }
   }

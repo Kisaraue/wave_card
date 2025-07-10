@@ -6,6 +6,8 @@ import '../presentation/screens/profile_card_edit_screen.dart';
 import '../presentation/screens/contacts_screen.dart';
 import '../presentation/screens/contact_detail_screen.dart';
 import '../presentation/screens/settings_screen.dart';
+import '../presentation/screens/qr_share_screen.dart';
+import '../presentation/screens/qr_scanner_screen.dart';
 
 class AppRouter {
   static const String home = '/';
@@ -15,6 +17,8 @@ class AppRouter {
   static const String contacts = '/contacts';
   static const String contactDetail = '/contact-detail';
   static const String settings = '/settings';
+  static const String qrShare = '/qr-share';
+  static const String qrScanner = '/qr-scanner';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -38,6 +42,13 @@ class AppRouter {
         );
       case '/settings':
         return MaterialPageRoute(builder: (_) => const SettingsScreen());
+      case '/qr-share':
+        final cardId = settings.arguments as String?;
+        return MaterialPageRoute(
+          builder: (_) => QRShareScreen(selectedCardId: cardId),
+        );
+      case '/qr-scanner':
+        return MaterialPageRoute(builder: (_) => const QRScannerScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => const Scaffold(
