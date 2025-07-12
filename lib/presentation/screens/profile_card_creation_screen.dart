@@ -68,36 +68,38 @@ class _ProfileCardCreationScreenState
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surface.withOpacity(0.8),
-            ],
+      body: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.surface,
+                Theme.of(context).colorScheme.surface.withOpacity(0.8),
+              ],
+            ),
           ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCardPreview(cardForm),
-              const SizedBox(height: AppConstants.largeSpacing),
-              _buildForm(
-                context,
-                _formKey,
-                _fullNameController,
-                _jobTitleController,
-                _companyController,
-                _emailController,
-                _phoneController,
-                _addressController,
-                cardFormNotifier,
-              ),
-            ],
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCardPreview(cardForm),
+                const SizedBox(height: AppConstants.largeSpacing),
+                _buildForm(
+                  context,
+                  _formKey,
+                  _fullNameController,
+                  _jobTitleController,
+                  _companyController,
+                  _emailController,
+                  _phoneController,
+                  _addressController,
+                  cardFormNotifier,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -218,7 +220,7 @@ class _ProfileCardCreationScreenState
                 child: Text(
                   'Save Card',
                   style: TextStyle(
-                    fontSize: 16, 
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onPrimary,
                   ),
@@ -250,14 +252,20 @@ class _ProfileCardCreationScreenState
         maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+          prefixIcon: Icon(
+            icon,
+            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+              width: 1,
+            ),
           ),
           fillColor: Colors.transparent,
           filled: true,
@@ -546,13 +554,14 @@ class _ProfileCardCreationScreenState
                     backgroundColor: color,
                     intensity: isSelected ? 1.5 : 0.8,
                     isPressed: isSelected,
-                    child: isSelected
-                        ? Icon(
-                            Icons.check,
-                            color: Theme.of(context).colorScheme.onPrimary,
-                            size: 20,
-                          )
-                        : const SizedBox.shrink(),
+                    child:
+                        isSelected
+                            ? Icon(
+                              Icons.check,
+                              color: Theme.of(context).colorScheme.onPrimary,
+                              size: 20,
+                            )
+                            : const SizedBox.shrink(),
                   ),
                 );
               }).toList(),
@@ -600,9 +609,16 @@ class _ProfileCardCreationScreenState
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
                         color:
-                            isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+                            isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.transparent,
                         border: Border.all(
-                          color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                          color:
+                              isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface.withOpacity(0.3),
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -610,7 +626,10 @@ class _ProfileCardCreationScreenState
                         backgroundTypeNames[index],
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.onSurface,
+                          color:
+                              isSelected
+                                  ? Theme.of(context).colorScheme.onPrimary
+                                  : Theme.of(context).colorScheme.onSurface,
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.normal,
                         ),
@@ -672,7 +691,12 @@ class _ProfileCardCreationScreenState
                       color: color,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        color:
+                            isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.3),
                         width: isSelected ? 3 : 1,
                       ),
                     ),
@@ -697,11 +721,17 @@ class _ProfileCardCreationScreenState
     CardFormNotifier cardFormNotifier,
   ) {
     final gradientPresets = [
-      [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withOpacity(0.8)],
+      [
+        Theme.of(context).colorScheme.surface,
+        Theme.of(context).colorScheme.surface.withOpacity(0.8),
+      ],
       [Colors.blue[50]!, Colors.blue[100]!],
       [Colors.green[50]!, Colors.green[100]!],
       [Colors.yellow[50]!, Colors.yellow[100]!],
-      [Theme.of(context).colorScheme.errorContainer, Theme.of(context).colorScheme.errorContainer.withOpacity(0.7)],
+      [
+        Theme.of(context).colorScheme.errorContainer,
+        Theme.of(context).colorScheme.errorContainer.withOpacity(0.7),
+      ],
       [Colors.purple[50]!, Colors.purple[100]!],
       [Colors.orange[50]!, Colors.orange[100]!],
       [Colors.teal[50]!, Colors.teal[100]!],
@@ -746,7 +776,12 @@ class _ProfileCardCreationScreenState
                       ),
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                        color:
+                            isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(
+                                  context,
+                                ).colorScheme.onSurface.withOpacity(0.3),
                         width: isSelected ? 3 : 1,
                       ),
                     ),

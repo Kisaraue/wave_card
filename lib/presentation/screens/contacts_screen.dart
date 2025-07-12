@@ -90,28 +90,31 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surface.withOpacity(0.8),
+      body: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.surface,
+                Theme.of(context).colorScheme.surface.withOpacity(0.8),
+              ],
+            ),
+          ),
+          child: Column(
+            children: [
+              _buildSearchBar(),
+              Expanded(
+                child: contactsAsync.when(
+                  data: (contacts) => _buildContactsList(contacts),
+                  loading:
+                      () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => _buildErrorState(error),
+                ),
+              ),
             ],
           ),
-        ),
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            Expanded(
-              child: contactsAsync.when(
-                data: (contacts) => _buildContactsList(contacts),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => _buildErrorState(error),
-              ),
-            ),
-          ],
         ),
       ),
     );

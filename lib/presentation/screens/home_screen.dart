@@ -28,31 +28,33 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ToastUtils.init(context);
     
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withOpacity(0.8)],
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withOpacity(0.8)],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 100), // Add padding for floating nav
+                child: IndexedStack(
+                  index: _selectedIndex,
+                  children: const [
+                    _MyCardsTab(),
+                    _MyContactsTab(),
+                    _SettingsTab(),
+                  ],
+                ),
               ),
             ),
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 100), // Add padding for floating nav
-              child: IndexedStack(
-                index: _selectedIndex,
-                children: const [
-                  _MyCardsTab(),
-                  _MyContactsTab(),
-                  _SettingsTab(),
-                ],
-              ),
-            ),
-          ),
-          _buildQRScanButton(),
-          _buildFloatingBottomNavigationBar(),
-        ],
+            _buildQRScanButton(),
+            _buildFloatingBottomNavigationBar(),
+          ],
+        ),
       ),
     );
   }

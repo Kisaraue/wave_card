@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../presentation/screens/splash_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/profile_card_creation_screen.dart';
 import '../presentation/screens/card_creation_wizard_screen.dart';
@@ -10,7 +11,8 @@ import '../presentation/screens/qr_share_screen.dart';
 import '../presentation/screens/qr_scanner_screen.dart';
 
 class AppRouter {
-  static const String home = '/';
+  static const String splash = '/';
+  static const String home = '/home';
   static const String createCard = '/create-card';
   static const String createCardWizard = '/create-card-wizard';
   static const String editCard = '/edit-card';
@@ -23,6 +25,8 @@ class AppRouter {
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
       case '/':
+        return MaterialPageRoute(builder: (_) => const SplashScreen());
+      case '/home':
         return MaterialPageRoute(builder: (_) => const HomeScreen());
       case '/create-card':
         return MaterialPageRoute(builder: (_) => const ProfileCardCreationScreen());

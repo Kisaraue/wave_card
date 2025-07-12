@@ -12,11 +12,12 @@ import '../widgets/neumorphism_container.dart';
 
 class ContactDetailScreen extends ConsumerStatefulWidget {
   final String? contactId;
-  
+
   const ContactDetailScreen({super.key, this.contactId});
 
   @override
-  ConsumerState<ContactDetailScreen> createState() => _ContactDetailScreenState();
+  ConsumerState<ContactDetailScreen> createState() =>
+      _ContactDetailScreenState();
 }
 
 class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
@@ -33,13 +34,13 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
   Widget build(BuildContext context) {
     // Initialize toast for this context
     ToastUtils.init(context);
-    
+
     if (widget.contactId == null) {
       return _buildErrorScaffold('No contact ID provided');
     }
 
     final contact = ref.watch(contactByIdProvider(widget.contactId!));
-    
+
     if (contact == null) {
       return _buildErrorScaffold('Contact not found');
     }
@@ -54,7 +55,10 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
           IconButton(
             icon: Icon(
               contact.isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: contact.isFavorite ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.onPrimary,
+              color:
+                  contact.isFavorite
+                      ? Theme.of(context).colorScheme.error
+                      : Theme.of(context).colorScheme.onPrimary,
             ),
             onPressed: () => _toggleFavorite(contact),
           ),
@@ -67,47 +71,59 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
                   break;
               }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, color: Theme.of(context).colorScheme.error, size: 20),
-                    const SizedBox(width: 8),
-                    Text('Delete Contact', style: TextStyle(color: Theme.of(context).colorScheme.error)),
-                  ],
-                ),
-              ),
-            ],
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.delete,
+                          color: Theme.of(context).colorScheme.error,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Delete Contact',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
           ),
         ],
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Theme.of(context).colorScheme.surface,
-              Theme.of(context).colorScheme.surfaceContainerLow,
-            ],
+      body: SafeArea(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).colorScheme.surface,
+                Theme.of(context).colorScheme.surfaceContainerLow,
+              ],
+            ),
           ),
-        ),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildProfileCard(contact),
-              const SizedBox(height: AppConstants.largeSpacing),
-              _buildContactInfo(contact),
-              const SizedBox(height: AppConstants.largeSpacing),
-              _buildSocialLinks(contact),
-              const SizedBox(height: AppConstants.largeSpacing),
-              _buildNotes(contact),
-              const SizedBox(height: AppConstants.largeSpacing),
-              _buildReceivedInfo(contact),
-            ],
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildProfileCard(contact),
+                const SizedBox(height: AppConstants.largeSpacing),
+                _buildContactInfo(contact),
+                const SizedBox(height: AppConstants.largeSpacing),
+                _buildSocialLinks(contact),
+                const SizedBox(height: AppConstants.largeSpacing),
+                _buildNotes(contact),
+                const SizedBox(height: AppConstants.largeSpacing),
+                _buildReceivedInfo(contact),
+              ],
+            ),
           ),
         ),
       ),
@@ -156,9 +172,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.largeSpacing),
         child: Center(
-          child: ProfileCardWidget(
-            profileCard: contact.profileCard,
-          ),
+          child: ProfileCardWidget(profileCard: contact.profileCard),
         ),
       ),
     );
@@ -166,7 +180,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
 
   Widget _buildContactInfo(Contact contact) {
     final card = contact.profileCard;
-    
+
     return NeumorphismContainer(
       borderRadius: 16,
       intensity: 0.9,
@@ -177,9 +191,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
           children: [
             Text(
               'Contact Information',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppConstants.mediumSpacing),
             _buildInfoRow(Icons.person, 'Name', card.fullName),
@@ -207,7 +221,12 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value, {VoidCallback? onTap}) {
+  Widget _buildInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    VoidCallback? onTap,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppConstants.smallSpacing),
       child: InkWell(
@@ -220,7 +239,12 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
               Icon(
                 icon,
                 size: 20,
-                color: onTap != null ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color:
+                    onTap != null
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
               ),
               const SizedBox(width: AppConstants.mediumSpacing),
               Expanded(
@@ -230,7 +254,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
                     Text(
                       label,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -238,7 +264,10 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
                     Text(
                       value,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: onTap != null ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface,
+                        color:
+                            onTap != null
+                                ? Theme.of(context).colorScheme.primary
+                                : Theme.of(context).colorScheme.onSurface,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -260,7 +289,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
 
   Widget _buildSocialLinks(Contact contact) {
     final socialLinks = contact.profileCard.socialLinks;
-    
+
     if (socialLinks.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -275,13 +304,13 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
           children: [
             Text(
               'Social Links',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppConstants.mediumSpacing),
-            ...socialLinks.entries.map((entry) => 
-              _buildSocialLinkRow(entry.key, entry.value)
+            ...socialLinks.entries.map(
+              (entry) => _buildSocialLinkRow(entry.key, entry.value),
             ),
           ],
         ),
@@ -294,7 +323,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
       builder: (context, ref, child) {
         IconData icon;
         Color color;
-        
+
         switch (platform.toLowerCase()) {
           case 'linkedin':
             icon = Icons.business;
@@ -325,13 +354,18 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
             icon = Icons.link;
             color = Theme.of(context).colorScheme.primary;
         }
-        
+
         return _buildSocialLinkRowContent(icon, color, platform, url);
       },
     );
   }
-  
-  Widget _buildSocialLinkRowContent(IconData icon, Color color, String platform, String url) {
+
+  Widget _buildSocialLinkRowContent(
+    IconData icon,
+    Color color,
+    String platform,
+    String url,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppConstants.smallSpacing),
       child: InkWell(
@@ -350,7 +384,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
                     Text(
                       platform.toUpperCase(),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -367,11 +403,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
                   ],
                 ),
               ),
-              Icon(
-                Icons.open_in_new,
-                size: 16,
-                color: color.withOpacity(0.7),
-              ),
+              Icon(Icons.open_in_new, size: 16, color: color.withOpacity(0.7)),
             ],
           ),
         ),
@@ -408,32 +440,38 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
             const SizedBox(height: AppConstants.mediumSpacing),
             _isEditingNotes
                 ? TextField(
-                    controller: _notesController,
-                    maxLines: 4,
-                    decoration: InputDecoration(
-                      hintText: 'Add notes about this contact...',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-                      ),
+                  controller: _notesController,
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    hintText: 'Add notes about this contact...',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  )
-                : Text(
-                    contact.notes?.isNotEmpty == true 
-                        ? contact.notes! 
-                        : 'No notes added yet. Tap the edit button to add notes.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: contact.notes?.isNotEmpty == true 
-                          ? Theme.of(context).colorScheme.onSurface 
-                          : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                      fontStyle: contact.notes?.isNotEmpty == true 
-                          ? FontStyle.normal 
-                          : FontStyle.italic,
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ),
+                )
+                : Text(
+                  contact.notes?.isNotEmpty == true
+                      ? contact.notes!
+                      : 'No notes added yet. Tap the edit button to add notes.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color:
+                        contact.notes?.isNotEmpty == true
+                            ? Theme.of(context).colorScheme.onSurface
+                            : Theme.of(
+                              context,
+                            ).colorScheme.onSurface.withOpacity(0.6),
+                    fontStyle:
+                        contact.notes?.isNotEmpty == true
+                            ? FontStyle.normal
+                            : FontStyle.italic,
+                  ),
+                ),
           ],
         ),
       ),
@@ -451,9 +489,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
           children: [
             Text(
               'Contact Details',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppConstants.mediumSpacing),
             _buildInfoRow(
@@ -461,11 +499,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
               'Received',
               _formatDate(contact.receivedAt),
             ),
-            _buildInfoRow(
-              Icons.qr_code,
-              'Contact ID',
-              contact.id,
-            ),
+            _buildInfoRow(Icons.qr_code, 'Contact ID', contact.id),
           ],
         ),
       ),
@@ -479,15 +513,14 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
   void _toggleNotesEditing(Contact contact) {
     if (_isEditingNotes) {
       // Save notes
-      ref.read(contactProvider.notifier).updateContactNotes(
-        contact.id,
-        _notesController.text,
-      );
+      ref
+          .read(contactProvider.notifier)
+          .updateContactNotes(contact.id, _notesController.text);
     } else {
       // Start editing
       _notesController.text = contact.notes ?? '';
     }
-    
+
     setState(() {
       _isEditingNotes = !_isEditingNotes;
     });
@@ -496,25 +529,30 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
   void _showDeleteConfirmation(Contact contact) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Contact'),
-        content: Text('Are you sure you want to delete ${contact.profileCard.fullName}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Delete Contact'),
+            content: Text(
+              'Are you sure you want to delete ${contact.profileCard.fullName}?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  ref.read(contactProvider.notifier).deleteContact(contact.id);
+                  Navigator.of(context).pop(); // Close dialog
+                  Navigator.of(context).pop(); // Go back to contacts list
+                },
+                style: TextButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                ),
+                child: const Text('Delete'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () {
-              ref.read(contactProvider.notifier).deleteContact(contact.id);
-              Navigator.of(context).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back to contacts list
-            },
-            style: TextButton.styleFrom(foregroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
     );
   }
 
@@ -543,7 +581,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
     } else {
       uri = Uri.parse(url);
     }
-    
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {

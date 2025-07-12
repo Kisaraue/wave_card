@@ -6,40 +6,39 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _buildSectionHeader('About'),
-          _buildAboutTile(context),
-          const SizedBox(height: 24),
-          _buildSectionHeader('Data'),
-          _buildDataTile(),
-        ],
+      appBar: AppBar(title: const Text('Settings')),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _buildSectionHeader('About'),
+            _buildAboutTile(context),
+            const SizedBox(height: 24),
+            _buildSectionHeader('Data'),
+            _buildDataTile(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildSectionHeader(String title) {
     return Builder(
-      builder: (context) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(
-          title,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.onSurface,
+      builder:
+          (context) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
           ),
-        ),
-      ),
     );
   }
-
 
   Widget _buildAboutTile(BuildContext context) {
     return Card(
@@ -55,7 +54,9 @@ class SettingsScreen extends StatelessWidget {
             applicationVersion: '1.0.0',
             applicationIcon: const Icon(Icons.credit_card, size: 48),
             children: const [
-              Text('A virtual business card manager with customizable profile cards.'),
+              Text(
+                'A virtual business card manager with customizable profile cards.',
+              ),
             ],
           );
         },
@@ -65,17 +66,21 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildDataTile() {
     return Builder(
-      builder: (context) => Card(
-        child: ListTile(
-          leading: const Icon(Icons.storage),
-          title: const Text('Clear All Data'),
-          subtitle: const Text('Delete all profile cards and contacts'),
-          trailing: Icon(Icons.arrow_forward_ios, color: Theme.of(context).colorScheme.error),
-          onTap: () {
-            // TODO: Implement clear data functionality
-          },
-        ),
-      ),
+      builder:
+          (context) => Card(
+            child: ListTile(
+              leading: const Icon(Icons.storage),
+              title: const Text('Clear All Data'),
+              subtitle: const Text('Delete all profile cards and contacts'),
+              trailing: Icon(
+                Icons.arrow_forward_ios,
+                color: Theme.of(context).colorScheme.error,
+              ),
+              onTap: () {
+                // TODO: Implement clear data functionality
+              },
+            ),
+          ),
     );
   }
 }

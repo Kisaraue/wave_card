@@ -12,7 +12,7 @@
     <!-- Internet for sharing -->
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="wave_card"
+        android:label="Wave Card"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
