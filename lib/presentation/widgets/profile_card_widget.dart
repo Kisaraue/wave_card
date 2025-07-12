@@ -142,7 +142,7 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
           _buildCardBackground(),
           _buildCardContent(),
           if (widget.showActions) _buildCardActions(),
-          _buildShareButton(),
+          if (widget.showActions) _buildShareButton(),
         ],
       ),
     );
@@ -692,8 +692,18 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
         errorWidget: (context, url, error) => _buildInitialsContainer(),
       );
     } else {
-      // For any other case, show initials
-      return _buildInitialsContainer();
+      // Check if it's a local file path
+      final file = File(imageUrl);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildInitialsContainer(),
+        );
+      } else {
+        // For any other case, show initials
+        return _buildInitialsContainer();
+      }
     }
   }
 
@@ -853,9 +863,6 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
             case 'duplicate':
               widget.onDuplicate?.call();
               break;
-            case 'share':
-              _showSharingOptions();
-              break;
             case 'delete':
               widget.onDelete?.call();
               break;
@@ -883,16 +890,6 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
             ),
           ),
           const PopupMenuItem(
-            value: 'share',
-            child: Row(
-              children: [
-                Icon(Icons.share, size: 16),
-                SizedBox(width: 8),
-                Text('Share'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
             value: 'delete',
             child: Row(
               children: [
@@ -909,27 +906,20 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
 
   Widget _buildShareButton() {
     return Positioned(
-      top: 8,
-      right: 8,
+      top: 60,
+      right: 18,
       child: GestureDetector(
         onTap: _showSharingOptions,
         child: Container(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: AppColors.ash.withOpacity(0.9),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.black.withOpacity(0.15),
-                blurRadius: 6,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            color: AppColors.black.withOpacity(0.1),
           ),
           child: const Icon(
             Icons.share,
             size: 16,
-            color: Colors.white,
+            color: AppColors.white,
           ),
         ),
       ),

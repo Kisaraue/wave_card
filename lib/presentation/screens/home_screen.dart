@@ -276,6 +276,7 @@ class _MyCardsTab extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: AppConstants.mediumSpacing),
           child: ProfileCardWidget(
             profileCard: card,
+            showActions: true,
             onTap: () => Navigator.pushNamed(
               context,
               AppRouter.editCard,

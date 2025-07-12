@@ -113,7 +113,7 @@ class ToastUtils {
 
     _fToast.showToast(
       child: toast,
-      gravity: ToastGravity.TOP,
+      gravity: ToastGravity.BOTTOM,
       toastDuration: const Duration(seconds: 3),
     );
   }
