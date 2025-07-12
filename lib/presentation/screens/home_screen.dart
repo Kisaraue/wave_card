@@ -38,50 +38,58 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 colors: [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withOpacity(0.8)],
               ),
             ),
-            child: IndexedStack(
-              index: _selectedIndex,
-              children: const [
-                _MyCardsTab(),
-                _MyContactsTab(),
-                _SettingsTab(),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 100), // Add padding for floating nav
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: const [
+                  _MyCardsTab(),
+                  _MyContactsTab(),
+                  _SettingsTab(),
+                ],
+              ),
             ),
           ),
           _buildQRScanButton(),
+          _buildFloatingBottomNavigationBar(),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
-  Widget _buildBottomNavigationBar() {
-    return GlassmorphismContainer(
-      height: 70,
-      borderRadius: 0,
-      blur: 15.0,
-      opacity: 0.15,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildNavItem(
-            icon: Icons.credit_card,
-            label: 'My Cards',
-            isSelected: _selectedIndex == 0,
-            onTap: () => setState(() => _selectedIndex = 0),
-          ),
-          _buildNavItem(
-            icon: Icons.contacts,
-            label: 'Contacts',
-            isSelected: _selectedIndex == 1,
-            onTap: () => setState(() => _selectedIndex = 1),
-          ),
-          _buildNavItem(
-            icon: Icons.settings,
-            label: 'Settings',
-            isSelected: _selectedIndex == 2,
-            onTap: () => setState(() => _selectedIndex = 2),
-          ),
-        ],
+  Widget _buildFloatingBottomNavigationBar() {
+    return Positioned(
+      left: 20,
+      right: 20,
+      bottom: 20,
+      child: GlassmorphismContainer(
+        height: 70,
+        borderRadius: 35,
+        blur: 15.0,
+        opacity: 0.2,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildNavItem(
+              icon: Icons.credit_card,
+              label: 'My Cards',
+              isSelected: _selectedIndex == 0,
+              onTap: () => setState(() => _selectedIndex = 0),
+            ),
+            _buildNavItem(
+              icon: Icons.contacts,
+              label: 'Contacts',
+              isSelected: _selectedIndex == 1,
+              onTap: () => setState(() => _selectedIndex = 1),
+            ),
+            _buildNavItem(
+              icon: Icons.settings,
+              label: 'Settings',
+              isSelected: _selectedIndex == 2,
+              onTap: () => setState(() => _selectedIndex = 2),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -96,7 +104,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            color: isSelected 
+                ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
+                : Colors.transparent,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -108,15 +122,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                 size: 22,
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(
                   color: isSelected
                       ? AppColors.grey
-                      : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                  fontSize: 12,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      : AppColors.black,
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -131,7 +145,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget _buildQRScanButton() {
     return Positioned(
       right: 20,
-      bottom: 90, // Above the bottom navigation bar
+      bottom: 110, // Above the floating navigation bar
       child: NeumorphismButton(
         onTap: _scanQRCode,
         width: 56,
