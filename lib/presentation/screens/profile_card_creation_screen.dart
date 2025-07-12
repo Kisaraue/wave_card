@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/profile_card_widget.dart';
 import '../widgets/glassmorphism_container.dart';
+import '../widgets/neumorphism_container.dart';
 import '../../providers/profile_card_provider.dart';
 import '../../data/models/profile_card.dart';
 import '../../core/theme/app_colors.dart';
@@ -132,8 +133,9 @@ class _ProfileCardCreationScreenState
     TextEditingController addressController,
     CardFormNotifier cardFormNotifier,
   ) {
-    return GlassmorphismContainer(
+    return NeumorphismContainer(
       padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+      borderRadius: 20,
       child: Form(
         key: formKey,
         child: Column(
@@ -207,19 +209,19 @@ class _ProfileCardCreationScreenState
             const SizedBox(height: AppConstants.largeSpacing),
             _buildStyleCustomization(context, cardFormNotifier),
             const SizedBox(height: AppConstants.largeSpacing),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _saveCard(context, ref, _formKey),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: const Text(
+            NeumorphismButton(
+              onTap: () => _saveCard(context, ref, _formKey),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              borderRadius: 12,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Center(
+                child: Text(
                   'Save Card',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 16, 
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
                 ),
               ),
             ),
@@ -238,29 +240,39 @@ class _ProfileCardCreationScreenState
     int maxLines = 1,
     Function(String)? onChanged,
   }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 2),
+    return NeumorphismContainer(
+      borderRadius: 12,
+      intensity: 0.5,
+      isInverted: true,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1),
+          ),
+          fillColor: Colors.transparent,
+          filled: true,
         ),
-      ),
-      validator:
-          required
-              ? (value) {
-                if (value == null || value.isEmpty) {
-                  return 'This field is required';
+        validator:
+            required
+                ? (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'This field is required';
+                  }
+                  return null;
                 }
-                return null;
-              }
-              : null,
-      onChanged: onChanged,
+                : null,
+        onChanged: onChanged,
+      ),
     );
   }
 
@@ -366,11 +378,10 @@ class _ProfileCardCreationScreenState
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
-            borderRadius: BorderRadius.circular(12),
-          ),
+        NeumorphismContainer(
+          borderRadius: 12,
+          intensity: 0.5,
+          isInverted: true,
           child: DropdownButtonFormField<String>(
             value: currentStyle.fontFamily,
             decoration: const InputDecoration(
@@ -453,11 +464,10 @@ class _ProfileCardCreationScreenState
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
-            borderRadius: BorderRadius.circular(12),
-          ),
+        NeumorphismContainer(
+          borderRadius: 12,
+          intensity: 0.5,
+          isInverted: true,
           child: DropdownButtonFormField<FontWeight>(
             value: currentStyle.fontWeight,
             decoration: const InputDecoration(
@@ -529,25 +539,20 @@ class _ProfileCardCreationScreenState
                     );
                     cardFormNotifier.updateCardStyle(updatedStyle);
                   },
-                  child: Container(
+                  child: NeumorphismContainer(
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
-                        width: isSelected ? 3 : 1,
-                      ),
-                    ),
-                    child:
-                        isSelected
-                            ? Icon(
-                              Icons.check,
-                              color: Theme.of(context).colorScheme.onPrimary,
-                              size: 20,
-                            )
-                            : null,
+                    borderRadius: 20,
+                    backgroundColor: color,
+                    intensity: isSelected ? 1.5 : 0.8,
+                    isPressed: isSelected,
+                    child: isSelected
+                        ? Icon(
+                            Icons.check,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                            size: 20,
+                          )
+                        : const SizedBox.shrink(),
                   ),
                 );
               }).toList(),
@@ -777,11 +782,10 @@ class _ProfileCardCreationScreenState
           ),
         ),
         const SizedBox(height: AppConstants.smallSpacing),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3)),
-            borderRadius: BorderRadius.circular(12),
-          ),
+        NeumorphismContainer(
+          borderRadius: 12,
+          intensity: 0.5,
+          isInverted: true,
           child: DropdownButtonFormField<String>(
             value: currentStyle.template,
             decoration: const InputDecoration(

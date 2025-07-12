@@ -5,6 +5,7 @@ import '../../data/models/profile_card.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import 'glassmorphism_container.dart';
+import 'neumorphism_container.dart';
 
 class ProfileCardWidget extends StatefulWidget {
   final ProfileCard profileCard;
@@ -117,26 +118,11 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
   Widget _buildCard(BuildContext context) {
     final cardStyle = widget.profileCard.cardStyle;
     
-    return Container(
+    return NeumorphismContainer(
       width: AppConstants.cardWidth,
       height: AppConstants.cardHeight,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(cardStyle.borderRadius),
-        boxShadow: [
-          if (cardStyle.has3DEffect) ...[
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-            BoxShadow(
-              color: AppColors.black.withOpacity(0.05),
-              blurRadius: 40,
-              offset: const Offset(0, 20),
-            ),
-          ],
-        ],
-      ),
+      borderRadius: cardStyle.borderRadius,
+      intensity: cardStyle.has3DEffect ? 1.2 : 0.8,
       child: Stack(
         children: [
           _buildCardBackground(),
@@ -843,16 +829,15 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
       top: 8,
       right: 8,
       child: PopupMenuButton<String>(
-        icon: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.black.withOpacity(0.1),
-          ),
-          child: const Icon(
+        color: Colors.white,
+        icon: NeumorphismContainer(
+          padding: const EdgeInsets.all(6),
+          borderRadius: 12,
+          intensity: 0.5,
+          child: Icon(
             Icons.more_vert,
             size: 16,
-            color: AppColors.white,
+            color:  AppColors.grey,
           ),
         ),
         onSelected: (value) {
@@ -910,16 +895,14 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
       right: 18,
       child: GestureDetector(
         onTap: _showSharingOptions,
-        child: Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.black.withOpacity(0.1),
-          ),
-          child: const Icon(
+        child: NeumorphismContainer(
+          padding: const EdgeInsets.all(6),
+          borderRadius: 12,
+          intensity: 0.5,
+          child: Icon(
             Icons.share,
             size: 16,
-            color: AppColors.white,
+            color: AppColors.grey,
           ),
         ),
       ),

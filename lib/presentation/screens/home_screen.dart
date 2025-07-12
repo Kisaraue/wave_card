@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/profile_card_widget.dart';
 import '../widgets/glassmorphism_container.dart';
+import '../widgets/neumorphism_container.dart';
 import '../../providers/profile_card_provider.dart';
 import '../../providers/contact_provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -54,11 +55,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   }
 
   Widget _buildBottomNavigationBar() {
-    return Container(
+    return GlassmorphismContainer(
       height: 70,
-      decoration: const BoxDecoration(
-        gradient: AppColors.glassGradient,
-      ),
+      borderRadius: 0,
+      blur: 15.0,
+      opacity: 0.15,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -131,29 +132,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     return Positioned(
       right: 20,
       bottom: 90, // Above the bottom navigation bar
-      child: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.yellow,
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: _scanQRCode,
-            borderRadius: BorderRadius.circular(28),
-            child: Container(
-              width: 56,
-              height: 56,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.qr_code_scanner,
-                color: Theme.of(context).colorScheme.onPrimary,
-                size: 28,
-              ),
-            ),
-          ),
+      child: NeumorphismButton(
+        onTap: _scanQRCode,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: AppColors.buttonColor,
+        intensity: 0.5,
+        child: Icon(
+          Icons.qr_code_scanner,
+          color: Theme.of(context).colorScheme.onSurface,
+          size: 28,
         ),
       ),
     );
@@ -252,12 +241,11 @@ class _MyCardsTab extends ConsumerWidget {
           ],
         ),
         if (canAddMore)
-          GlassmorphismContainer(
-            child: IconButton(
-              onPressed: () => Navigator.pushNamed(context, AppRouter.createCardWizard),
-              icon: Icon(Icons.add, color: AppColors.grey),
-              iconSize: 32,
-            ),
+          NeumorphismButton(
+            onTap: () => Navigator.pushNamed(context, AppRouter.createCardWizard),
+            padding: const EdgeInsets.all(8),
+            borderRadius: 12,
+            child: Icon(Icons.add, color: AppColors.grey, size: 32),
           ),
       ],
     );
@@ -367,13 +355,11 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
                     ),
                   ],
                 ),
-                GlassmorphismContainer(
-                  child: IconButton(
-                    onPressed: () => Navigator.pushNamed(context, AppRouter.contacts),
-                    icon: Icon(Icons.view_list, color: Theme.of(context).colorScheme.primary),
-                    iconSize: 24,
-                    tooltip: 'View Full List',
-                  ),
+                NeumorphismButton(
+                  onTap: () => Navigator.pushNamed(context, AppRouter.contacts),
+                  padding: const EdgeInsets.all(8),
+                  borderRadius: 12,
+                  child: Icon(Icons.view_list, color: AppColors.grey, size: 24),
                 ),
               ],
             ),
@@ -427,7 +413,7 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              icon: const Icon(Icons.view_list),
+              icon: const Icon(Icons.view_list, color: AppColors.grey,),
               label: Text('View All ${contacts.length} Contacts'),
             ),
           ),
@@ -436,35 +422,17 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
   }
 
   Widget _buildContactCard(Contact contact) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.2),
-          width: 1,
+    return NeumorphismContainer(
+      borderRadius: 16,
+      padding: const EdgeInsets.all(AppConstants.smallSpacing),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(
+          context,
+          '/contact-detail',
+          arguments: contact.id,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(15),
-        child: GlassmorphismContainer(
-          borderRadius: 15,
-          child: InkWell(
-            onTap: () => Navigator.pushNamed(
-              context,
-              '/contact-detail',
-              arguments: contact.id,
-            ),
-            borderRadius: BorderRadius.circular(15),
-            child: Padding(
-              padding: const EdgeInsets.all(AppConstants.smallSpacing),
-              child: Row(
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
                 children: [
                   _buildContactAvatar(contact),
                   const SizedBox(width: AppConstants.smallSpacing),
@@ -507,10 +475,7 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
                     size: 16,
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
                   ),
-                ],
-              ),
-            ),
-          ),
+          ],
         ),
       ),
     );
@@ -757,7 +722,9 @@ class _SettingsTab extends StatelessWidget {
 
 
   Widget _buildAboutTile(BuildContext context) {
-    return Card(
+    return NeumorphismContainer(
+      borderRadius: 16,
+      intensity: 0.8,
       child: ListTile(
         leading: const Icon(Icons.info_outline),
         title: const Text('About CardWave'),
@@ -779,7 +746,9 @@ class _SettingsTab extends StatelessWidget {
   }
 
   Widget _buildDataTile(BuildContext context) {
-    return Card(
+    return NeumorphismContainer(
+      borderRadius: 16,
+      intensity: 0.8,
       child: ListTile(
         leading: const Icon(Icons.storage),
         title: const Text('Clear All Data'),

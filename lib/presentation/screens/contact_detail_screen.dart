@@ -8,6 +8,7 @@ import '../../providers/contact_provider.dart';
 import '../../data/models/contact.dart';
 import '../widgets/profile_card_widget.dart';
 import '../widgets/glassmorphism_container.dart';
+import '../widgets/neumorphism_container.dart';
 
 class ContactDetailScreen extends ConsumerStatefulWidget {
   final String? contactId;
@@ -149,8 +150,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
   }
 
   Widget _buildProfileCard(Contact contact) {
-    return GlassmorphismContainer(
+    return NeumorphismContainer(
       borderRadius: 20,
+      intensity: 1.1,
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.largeSpacing),
         child: Center(
@@ -165,8 +167,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
   Widget _buildContactInfo(Contact contact) {
     final card = contact.profileCard;
     
-    return GlassmorphismContainer(
+    return NeumorphismContainer(
       borderRadius: 16,
+      intensity: 0.9,
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumSpacing),
         child: Column(
@@ -262,8 +265,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
       return const SizedBox.shrink();
     }
 
-    return GlassmorphismContainer(
+    return NeumorphismContainer(
       borderRadius: 16,
+      intensity: 0.9,
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumSpacing),
         child: Column(
@@ -376,8 +380,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
   }
 
   Widget _buildNotes(Contact contact) {
-    return GlassmorphismContainer(
+    return NeumorphismContainer(
       borderRadius: 16,
+      intensity: 0.9,
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumSpacing),
         child: Column(
@@ -436,8 +441,9 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
   }
 
   Widget _buildReceivedInfo(Contact contact) {
-    return GlassmorphismContainer(
+    return NeumorphismContainer(
       borderRadius: 16,
+      intensity: 0.9,
       child: Padding(
         padding: const EdgeInsets.all(AppConstants.mediumSpacing),
         child: Column(

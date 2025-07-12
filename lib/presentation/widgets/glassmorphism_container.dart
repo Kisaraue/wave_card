@@ -27,9 +27,10 @@ class GlassmorphismContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If width and height are not provided, use a more flexible approach
-    if (width == null && height == null) {
+    // If width is not provided, use a more flexible approach
+    if (width == null) {
       return Container(
+        height: height,
         margin: margin,
         child: ClipRRect(
           borderRadius: BorderRadius.circular(borderRadius),
