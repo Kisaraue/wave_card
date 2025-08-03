@@ -206,20 +206,28 @@ class CardStyle {
 
   factory CardStyle.fromJson(Map<String, dynamic> json) {
     return CardStyle(
-      template: json['template'] as String,
-      fontFamily: json['fontFamily'] as String,
-      fontSize: (json['fontSize'] as num).toDouble(),
-      fontWeight: FontWeight.values[json['fontWeight'] as int],
-      textColor: Color(json['textColor'] as int),
-      backgroundColor: Color(json['backgroundColor'] as int),
-      backgroundType: json['backgroundType'] as String,
-      gradientColors: (json['gradientColors'] as List<dynamic>)
-          .map((color) => Color(color as int))
-          .toList(),
+      template: json['template'] as String? ?? 'Classic',
+      fontFamily: json['fontFamily'] as String? ?? 'Inter',
+      fontSize: (json['fontSize'] as num?)?.toDouble() ?? 14.0,
+      fontWeight: json['fontWeight'] != null 
+          ? FontWeight.values[json['fontWeight'] as int] 
+          : FontWeight.normal,
+      textColor: json['textColor'] != null 
+          ? Color(json['textColor'] as int) 
+          : Colors.black,
+      backgroundColor: json['backgroundColor'] != null 
+          ? Color(json['backgroundColor'] as int) 
+          : Colors.white,
+      backgroundType: json['backgroundType'] as String? ?? 'solid',
+      gradientColors: json['gradientColors'] != null 
+          ? (json['gradientColors'] as List<dynamic>)
+              .map((color) => Color(color as int))
+              .toList()
+          : [Colors.white, Colors.grey.shade100],
       backgroundImageUrl: json['backgroundImageUrl'] as String?,
-      borderRadius: (json['borderRadius'] as num).toDouble(),
-      hasGlassmorphism: json['hasGlassmorphism'] as bool,
-      has3DEffect: json['has3DEffect'] as bool,
+      borderRadius: (json['borderRadius'] as num?)?.toDouble() ?? 20.0,
+      hasGlassmorphism: json['hasGlassmorphism'] as bool? ?? false,
+      has3DEffect: json['has3DEffect'] as bool? ?? true,
     );
   }
 }

@@ -76,6 +76,14 @@ class SecureStorageService {
     }
   }
 
+  Future<void> clearProfileCards() async {
+    try {
+      await saveProfileCards([]);
+    } catch (e) {
+      throw StorageException('Failed to clear profile cards: $e');
+    }
+  }
+
   // Contacts Management
   Future<List<Contact>> getContacts() async {
     try {
@@ -130,6 +138,24 @@ class SecureStorageService {
       await saveContacts(contacts);
     } catch (e) {
       throw StorageException('Failed to delete contact: $e');
+    }
+  }
+
+  // Backup Settings
+  Future<bool> getBackupCardsEnabled() async {
+    try {
+      final value = await _secureStorage.read(key: 'backup_cards_enabled');
+      return value == 'true';
+    } catch (e) {
+      throw StorageException('Failed to get backup setting: $e');
+    }
+  }
+
+  Future<void> setBackupCardsEnabled(bool enabled) async {
+    try {
+      await _secureStorage.write(key: 'backup_cards_enabled', value: enabled.toString());
+    } catch (e) {
+      throw StorageException('Failed to set backup setting: $e');
     }
   }
 

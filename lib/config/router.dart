@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../presentation/screens/splash_screen.dart';
+import '../presentation/screens/login_screen.dart';
+import '../presentation/screens/signup_screen.dart';
 import '../presentation/screens/home_screen.dart';
 import '../presentation/screens/profile_card_creation_screen.dart';
 import '../presentation/screens/card_creation_wizard_screen.dart';
@@ -12,6 +14,8 @@ import '../presentation/screens/qr_scanner_screen.dart';
 
 class AppRouter {
   static const String splash = '/';
+  static const String login = '/login';
+  static const String signUp = '/signup';
   static const String home = '/home';
   static const String createCard = '/create-card';
   static const String createCardWizard = '/create-card-wizard';
@@ -26,6 +30,10 @@ class AppRouter {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(builder: (_) => const SplashScreen());
+      case '/login':
+        return MaterialPageRoute(builder: (_) => const LoginScreen());
+      case '/signup':
+        return MaterialPageRoute(builder: (_) => const SignUpScreen());
       case '/home':
         return MaterialPageRoute(builder: (_) => const HomeScreen());
       case '/create-card':

@@ -5,11 +5,13 @@ import '../widgets/glassmorphism_container.dart';
 import '../widgets/neumorphism_container.dart';
 import '../../providers/profile_card_provider.dart';
 import '../../providers/contact_provider.dart';
+import '../../data/storage/secure_storage_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/toast_utils.dart';
 import '../../config/router.dart';
 import '../../data/models/contact.dart';
+import '../../data/models/profile_card.dart';
 import 'qr_scanner_screen.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -201,7 +203,7 @@ class _MyCardsTab extends ConsumerWidget {
             const SizedBox(height: AppConstants.largeSpacing),
             Expanded(
               child: profileCardsAsync.when(
-                data: (cards) => _buildCardsList(context, cards),
+                data: (cards) => _buildCardsList(context, ref, cards),
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (error, stack) => Center(
                   child: Column(
@@ -267,7 +269,7 @@ class _MyCardsTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildCardsList(BuildContext context, List cards) {
+  Widget _buildCardsList(BuildContext context, WidgetRef ref, List<ProfileCard> cards) {
     if (cards.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -286,6 +288,13 @@ class _MyCardsTab extends ConsumerWidget {
               AppRouter.editCard,
               arguments: card.id,
             ),
+            onEdit: () => Navigator.pushNamed(
+              context,
+              AppRouter.editCard,
+              arguments: card.id,
+            ),
+            onDuplicate: () => _duplicateCard(context, ref, card),
+            onDelete: () => _deleteCard(context, ref, card),
           ),
         );
       },
@@ -328,6 +337,44 @@ class _MyCardsTab extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _duplicateCard(BuildContext context, WidgetRef ref, ProfileCard card) async {
+    await ref.read(profileCardProvider.notifier).duplicateProfileCard(card);
+    ToastUtils.showSuccess(
+      'Card duplicated successfully!',
+      isDarkMode: false,
+    );
+  }
+
+  void _deleteCard(BuildContext context, WidgetRef ref, ProfileCard card) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Card'),
+          content: Text('Are you sure you want to delete "${card.fullName}" card? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await ref.read(profileCardProvider.notifier).deleteProfileCard(card.id);
+                ToastUtils.showSuccess(
+                  'Card deleted successfully!',
+                  isDarkMode: false,
+                );
+              },
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -680,8 +727,75 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
   }
 }
 
-class _SettingsTab extends StatelessWidget {
+class _SettingsTab extends ConsumerStatefulWidget {
   const _SettingsTab();
+
+  @override
+  ConsumerState<_SettingsTab> createState() => _SettingsTabState();
+}
+
+class _SettingsTabState extends ConsumerState<_SettingsTab> {
+  final SecureStorageService _storageService = SecureStorageService();
+  bool _isBackupEnabled = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBackupSetting();
+  }
+
+  Future<void> _loadBackupSetting() async {
+    try {
+      final enabled = await _storageService.getBackupCardsEnabled();
+      setState(() {
+        _isBackupEnabled = enabled;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleBackup(bool value) async {
+    try {
+      await _storageService.setBackupCardsEnabled(value);
+      setState(() {
+        _isBackupEnabled = value;
+      });
+
+      if (value) {
+        await ref.read(profileCardProvider.notifier).syncLocalCardsToFirebase();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Backup enabled. Local cards synced to Firebase.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Backup disabled. Cards will only be saved locally.'),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update backup setting: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -708,6 +822,9 @@ class _SettingsTab extends StatelessWidget {
             Expanded(
               child: ListView(
                 children: [
+                  _buildSectionHeader(context, 'Backup'),
+                  _buildBackupTile(context),
+                  const SizedBox(height: 24),
                   _buildSectionHeader(context, 'About'),
                   _buildAboutTile(context),
                   const SizedBox(height: 24),
@@ -718,6 +835,28 @@ class _SettingsTab extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBackupTile(BuildContext context) {
+    return NeumorphismContainer(
+      borderRadius: 16,
+      intensity: 0.8,
+      child: ListTile(
+        leading: const Icon(Icons.cloud_upload),
+        title: const Text('Backup Cards'),
+        subtitle: const Text('Save cards to Firebase Cloud'),
+        trailing: _isLoading 
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Switch(
+              value: _isBackupEnabled,
+              onChanged: _toggleBackup,
+            ),
       ),
     );
   }

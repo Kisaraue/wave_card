@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 import '../../data/models/profile_card.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
@@ -664,6 +666,24 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
       return _buildInitialsContainer();
     }
     
+    // Check if it's a base64 data URL
+    if (imageUrl.startsWith('data:image/')) {
+      try {
+        // Extract the base64 part (after the comma)
+        final base64String = imageUrl.split(',')[1];
+        final Uint8List bytes = base64Decode(base64String);
+        
+        return Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) => _buildInitialsContainer(),
+        );
+      } catch (e) {
+        debugPrint('Error decoding base64 image: $e');
+        return _buildInitialsContainer();
+      }
+    }
+    
     // Check if it's a network URL
     if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
       return CachedNetworkImage(
@@ -826,77 +846,81 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
 
   Widget _buildCardActions() {
     return Positioned(
-      top: 8,
-      right: 8,
-      child: PopupMenuButton<String>(
-        color: Colors.white,
-        icon: NeumorphismContainer(
-          padding: const EdgeInsets.all(6),
-          borderRadius: 12,
-          intensity: 0.5,
-          child: Icon(
-            Icons.more_vert,
-            size: 16,
-            color:  AppColors.grey,
+      top: 12,
+      right: 12,
+      child: Material(
+        color: Colors.transparent,
+        child: PopupMenuButton<String>(
+          color: Colors.white,
+          padding: EdgeInsets.zero,
+          child: NeumorphismContainer(
+            padding: const EdgeInsets.all(8),
+            borderRadius: 12,
+            intensity: 0.5,
+            child: Icon(
+              Icons.more_vert,
+              size: 16,
+              color: AppColors.grey,
+            ),
           ),
+          onSelected: (value) {
+            switch (value) {
+              case 'edit':
+                widget.onEdit?.call();
+                break;
+              case 'duplicate':
+                widget.onDuplicate?.call();
+                break;
+              case 'delete':
+                widget.onDelete?.call();
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'edit',
+              child: Row(
+                children: [
+                  Icon(Icons.edit, size: 16),
+                  SizedBox(width: 8),
+                  Text('Edit'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'duplicate',
+              child: Row(
+                children: [
+                  Icon(Icons.copy, size: 16),
+                  SizedBox(width: 8),
+                  Text('Duplicate'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(Icons.delete, size: 16, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Delete', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+            ),
+          ],
         ),
-        onSelected: (value) {
-          switch (value) {
-            case 'edit':
-              widget.onEdit?.call();
-              break;
-            case 'duplicate':
-              widget.onDuplicate?.call();
-              break;
-            case 'delete':
-              widget.onDelete?.call();
-              break;
-          }
-        },
-        itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: 'edit',
-            child: Row(
-              children: [
-                Icon(Icons.edit, size: 16),
-                SizedBox(width: 8),
-                Text('Edit'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'duplicate',
-            child: Row(
-              children: [
-                Icon(Icons.copy, size: 16),
-                SizedBox(width: 8),
-                Text('Duplicate'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'delete',
-            child: Row(
-              children: [
-                Icon(Icons.delete, size: 16, color: Colors.red),
-                SizedBox(width: 8),
-                Text('Delete', style: TextStyle(color: Colors.red)),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
 
   Widget _buildShareButton() {
     return Positioned(
-      top: 60,
-      right: 18,
+      top: 56,
+      right: 12,
       child: GestureDetector(
         onTap: _showSharingOptions,
         child: NeumorphismContainer(
-          padding: const EdgeInsets.all(6),
+          padding: const EdgeInsets.all(8),
           borderRadius: 12,
           intensity: 0.5,
           child: Icon(

@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:path_provider/path_provider.dart';
 import '../../data/models/profile_card.dart';
 import '../../data/models/contact.dart';
+import '../../data/services/firebase_profile_service.dart';
 import '../../providers/contact_provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
@@ -305,7 +309,7 @@ class _QRScannerScreenState extends ConsumerState<QRScannerScreen> {
     }
   }
 
-  void _processQRData(String qrData) {
+  void _processQRData(String qrData) async {
     try {
       debugPrint('Processing QR data: $qrData');
       final data = jsonDecode(qrData);
@@ -333,7 +337,7 @@ class _QRScannerScreenState extends ConsumerState<QRScannerScreen> {
           'email': compactData['e'],
           'phone': compactData['p'],
           'address': compactData['a'],
-          'profileImageUrl': compactData['img'],
+          'profileImageUrl': await _processImageData(compactData['img']),
           'socialLinks': compactData['s'] ?? {},
           'customFields': compactData['cf'] ?? {},
           'cardStyle': _expandCardStyle(compactData['cs']),
@@ -390,7 +394,11 @@ class _QRScannerScreenState extends ConsumerState<QRScannerScreen> {
           receivedAt: DateTime.now(),
         );
 
+        // Save to local storage
         await ref.read(contactProvider.notifier).addContact(contact);
+
+        // Save to Firebase as received card
+        await FirebaseProfileService.saveReceivedCard(scannedCard!);
 
         if (mounted) {
           Navigator.of(context).pop(contact);
@@ -414,6 +422,43 @@ class _QRScannerScreenState extends ConsumerState<QRScannerScreen> {
     setState(() {
       isTorchOn = !isTorchOn;
     });
+  }
+
+  Future<String?> _processImageData(String? imageData) async {
+    if (imageData == null || imageData.isEmpty) {
+      return null;
+    }
+
+    // If it's already a network URL, keep it as is
+    if (imageData.startsWith('http://') || imageData.startsWith('https://')) {
+      return imageData;
+    }
+
+    // If it's base64 data, save it as a local file
+    if (imageData.startsWith('data:image')) {
+      try {
+        // Extract the base64 part (after the comma)
+        final base64String = imageData.split(',')[1];
+        final bytes = base64Decode(base64String);
+        
+        // Create a unique filename for the received image
+        final directory = await getApplicationDocumentsDirectory();
+        final fileName = 'received_image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final file = File('${directory.path}/$fileName');
+        
+        // Write the image data to file
+        await file.writeAsBytes(bytes);
+        debugPrint('Saved received image to: ${file.path}');
+        
+        return file.path;
+      } catch (e) {
+        debugPrint('Error processing base64 image: $e');
+        return null;
+      }
+    }
+
+    // If it's a local file path (backward compatibility), return as is
+    return imageData;
   }
 
   Map<String, dynamic> _expandCardStyle(dynamic compactStyle) {

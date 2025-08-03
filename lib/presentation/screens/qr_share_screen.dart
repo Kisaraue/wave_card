@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:convert';
+import 'dart:io';
 import '../../data/models/profile_card.dart';
 import '../../providers/profile_card_provider.dart';
 import '../../core/theme/app_colors.dart';
@@ -65,7 +66,7 @@ class _QRShareScreenState extends ConsumerState<QRShareScreen> {
       'e': card.email,
       'p': card.phone,
       'a': card.address,
-      'img': card.profileImageUrl,
+      'img': _getImageDataForSharing(card.profileImageUrl),
       's': card.socialLinks,
       'cf': card.customFields,
       'cs': card.cardStyle.toJson(),
@@ -96,6 +97,7 @@ class _QRShareScreenState extends ConsumerState<QRShareScreen> {
         'e': card.email,
         'p': card.phone,
         's': card.socialLinks,
+        // Exclude image from minimal version to reduce size
         // Only essential card style info
         'cs': {
           'template': card.cardStyle.template,
@@ -120,6 +122,39 @@ class _QRShareScreenState extends ConsumerState<QRShareScreen> {
     }
     
     return jsonString;
+  }
+
+  String? _getImageDataForSharing(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return null;
+    }
+
+    // If it's already a network URL, keep it as is
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      return imageUrl;
+    }
+
+    // If it's a local file, convert to base64
+    try {
+      final file = File(imageUrl);
+      if (file.existsSync()) {
+        final bytes = file.readAsBytesSync();
+        // Limit image size to prevent QR code from becoming too large
+        // We'll compress if the file is larger than 50KB
+        if (bytes.length > 50 * 1024) {
+          debugPrint('Image too large (${bytes.length} bytes), excluding from QR code');
+          return null;
+        }
+        
+        final base64String = base64Encode(bytes);
+        debugPrint('Image converted to base64, size: ${base64String.length} characters');
+        return 'data:image/jpeg;base64,$base64String';
+      }
+    } catch (e) {
+      debugPrint('Error converting image to base64: $e');
+    }
+    
+    return null;
   }
 
   @override

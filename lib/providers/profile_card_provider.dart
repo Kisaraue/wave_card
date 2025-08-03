@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/profile_card.dart';
 import '../data/storage/secure_storage_service.dart';
+import '../data/services/firebase_profile_service.dart';
 
 final profileCardProvider = StateNotifierProvider<ProfileCardNotifier, AsyncValue<List<ProfileCard>>>((ref) {
   return ProfileCardNotifier();
@@ -13,11 +14,56 @@ class ProfileCardNotifier extends StateNotifier<AsyncValue<List<ProfileCard>>> {
 
   final SecureStorageService _storageService = SecureStorageService();
 
+  Future<bool> _isBackupEnabled() async {
+    try {
+      return await _storageService.getBackupCardsEnabled();
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<void> loadProfileCards() async {
     try {
       state = const AsyncValue.loading();
-      final cards = await _storageService.getProfileCards();
-      state = AsyncValue.data(cards);
+      
+      // Load cards from local storage first
+      final localCards = await _storageService.getProfileCards();
+      
+      // If backup is enabled and we have authentication, sync with Firebase
+      if (await _isBackupEnabled()) {
+        try {
+          final firebaseCards = await FirebaseProfileService.getUserProfileCards();
+          
+          // Merge Firebase cards with local cards (Firebase takes precedence for duplicates)
+          final mergedCards = <String, ProfileCard>{};
+          
+          // Add local cards first
+          for (final card in localCards) {
+            mergedCards[card.id] = card;
+          }
+          
+          // Add/overwrite with Firebase cards
+          for (final card in firebaseCards) {
+            mergedCards[card.id] = card;
+          }
+          
+          final finalCards = mergedCards.values.toList();
+          
+          // Update local storage with merged data
+          await _storageService.clearProfileCards();
+          for (final card in finalCards) {
+            await _storageService.addProfileCard(card);
+          }
+          
+          state = AsyncValue.data(finalCards);
+        } catch (firebaseError) {
+          print('Firebase sync failed: $firebaseError');
+          // Fall back to local cards if Firebase fails
+          state = AsyncValue.data(localCards);
+        }
+      } else {
+        state = AsyncValue.data(localCards);
+      }
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -26,6 +72,11 @@ class ProfileCardNotifier extends StateNotifier<AsyncValue<List<ProfileCard>>> {
   Future<void> addProfileCard(ProfileCard card) async {
     try {
       await _storageService.addProfileCard(card);
+      
+      if (await _isBackupEnabled()) {
+        await FirebaseProfileService.saveUserProfileCard(card);
+      }
+      
       await loadProfileCards();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -35,6 +86,11 @@ class ProfileCardNotifier extends StateNotifier<AsyncValue<List<ProfileCard>>> {
   Future<void> updateProfileCard(ProfileCard updatedCard) async {
     try {
       await _storageService.updateProfileCard(updatedCard);
+      
+      if (await _isBackupEnabled()) {
+        await FirebaseProfileService.updateProfileCard(updatedCard);
+      }
+      
       await loadProfileCards();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -44,6 +100,11 @@ class ProfileCardNotifier extends StateNotifier<AsyncValue<List<ProfileCard>>> {
   Future<void> deleteProfileCard(String cardId) async {
     try {
       await _storageService.deleteProfileCard(cardId);
+      
+      if (await _isBackupEnabled()) {
+        await FirebaseProfileService.deleteProfileCard(cardId);
+      }
+      
       await loadProfileCards();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -68,6 +129,26 @@ class ProfileCardNotifier extends StateNotifier<AsyncValue<List<ProfileCard>>> {
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
+  }
+
+  Future<void> syncLocalCardsToFirebase() async {
+    try {
+      final localCards = await _storageService.getProfileCards();
+      
+      for (final card in localCards) {
+        try {
+          await FirebaseProfileService.saveUserProfileCard(card);
+        } catch (e) {
+          print('Failed to sync card ${card.id} to Firebase: $e');
+        }
+      }
+    } catch (error, stackTrace) {
+      state = AsyncValue.error(error, stackTrace);
+    }
+  }
+
+  Future<void> syncFromFirebase() async {
+    await loadProfileCards();
   }
 }
 

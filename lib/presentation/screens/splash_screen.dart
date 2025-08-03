@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import '../../config/router.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/profile_card_provider.dart';
 import '../screens/home_screen.dart';
+import '../screens/login_screen.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -52,14 +56,33 @@ class _SplashScreenState extends State<SplashScreen>
     await Future.delayed(const Duration(milliseconds: 2000));
     
     if (mounted) {
-      Navigator.of(context).pushReplacement(_createSmoothTransition());
+      _checkAuthAndNavigate();
     }
   }
 
-  // Create smooth transition animation to home screen
-  PageRouteBuilder _createSmoothTransition() {
+  void _checkAuthAndNavigate() {
+    final authState = ref.read(authStateProvider);
+    
+    if (authState.isAuthenticated) {
+      // Trigger Firebase sync for already authenticated users
+      ref.read(profileCardProvider.notifier).syncFromFirebase();
+      Navigator.of(context).pushReplacement(_createSmoothTransition(const HomeScreen()));
+    } else if (authState.isUnauthenticated) {
+      Navigator.of(context).pushReplacement(_createSmoothTransition(const LoginScreen()));
+    } else {
+      // Still loading, wait a bit more
+      Timer(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _checkAuthAndNavigate();
+        }
+      });
+    }
+  }
+
+  // Create smooth transition animation to target screen
+  PageRouteBuilder _createSmoothTransition(Widget targetScreen) {
     return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => const HomeScreen(),
+      pageBuilder: (context, animation, secondaryAnimation) => targetScreen,
       transitionDuration: const Duration(milliseconds: 800),
       reverseTransitionDuration: const Duration(milliseconds: 400),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {

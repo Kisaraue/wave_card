@@ -37,6 +37,7 @@ dependencies:
   
   # Storage & Security
   flutter_secure_storage: ^9.0.0
+  path_provider: ^2.1.2
   
   # UI & Styling
   google_fonts: ^6.0.0
@@ -59,6 +60,12 @@ dependencies:
   # QR Code Generation and Scanning
   qr_flutter: ^4.1.0
   mobile_scanner: ^7.0.1
+  
+  # Firebase
+  firebase_core: ^3.10.0
+  firebase_auth: ^5.4.0
+  cloud_firestore: ^5.6.0
+  firebase_storage: ^12.4.0
   
   # Native Splash Screen
   flutter_native_splash: ^2.3.10

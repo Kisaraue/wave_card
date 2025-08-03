@@ -5,6 +5,7 @@ import '../widgets/glassmorphism_container.dart';
 import '../widgets/neumorphism_container.dart';
 import '../../providers/profile_card_provider.dart';
 import '../../data/models/profile_card.dart';
+import '../../data/services/firebase_test_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/utils/toast_utils.dart';
@@ -56,6 +57,16 @@ class _ProfileCardCreationScreenState
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
+          TextButton(
+            onPressed: () => _testFirebase(context),
+            child: Text(
+              'Test FB',
+              style: TextStyle(
+                color: Colors.orange,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           TextButton(
             onPressed: () => _saveCard(context, ref, _formKey),
             child: Text(
@@ -298,6 +309,7 @@ class _ProfileCardCreationScreenState
         final cardForm = ref.read(cardFormProvider);
         final profileCardNotifier = ref.read(profileCardProvider.notifier);
 
+        // Save to both local storage and Firebase
         await profileCardNotifier.addProfileCard(cardForm);
 
         if (context.mounted) {
@@ -305,7 +317,7 @@ class _ProfileCardCreationScreenState
           Navigator.pop(context);
 
           ToastUtils.showSuccess(
-            'Profile card created successfully!',
+            'Profile card created and synced successfully!',
             isDarkMode: false,
           );
         }
@@ -313,6 +325,23 @@ class _ProfileCardCreationScreenState
     } catch (e) {
       if (context.mounted) {
         ToastUtils.showError('Error saving card: $e', isDarkMode: false);
+      }
+    }
+  }
+
+  Future<void> _testFirebase(BuildContext context) async {
+    try {
+      ToastUtils.showInfo('Testing Firebase connection...', isDarkMode: false);
+      
+      await FirebaseTestService.testFirebaseConnection();
+      await FirebaseTestService.testProfileCardSave();
+      
+      if (context.mounted) {
+        ToastUtils.showSuccess('Firebase test completed successfully!', isDarkMode: false);
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ToastUtils.showError('Firebase test failed: $e', isDarkMode: false);
       }
     }
   }
