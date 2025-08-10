@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/profile_card.dart';
 import '../models/contact.dart';
+import '../services/auth_service.dart';
 import '../../core/constants/app_constants.dart';
 
 class SecureStorageService {
@@ -144,6 +145,13 @@ class SecureStorageService {
   // Backup Settings
   Future<bool> getBackupCardsEnabled() async {
     try {
+      // First try to get from Firebase if user is authenticated
+      final firebaseEnabled = await getBackupEnabledFromFirebase();
+      if (firebaseEnabled != null) {
+        return firebaseEnabled;
+      }
+      
+      // Fallback to local storage
       final value = await _secureStorage.read(key: 'backup_cards_enabled');
       return value == 'true';
     } catch (e) {
@@ -151,11 +159,74 @@ class SecureStorageService {
     }
   }
 
-  Future<void> setBackupCardsEnabled(bool enabled) async {
+  Future<void> setBackupCardsEnabled(bool enabled, {bool updateFirebase = true}) async {
     try {
+      // Save to Firebase if user is authenticated and updateFirebase is true
+      if (updateFirebase) {
+        await saveBackupEnabledToFirebase(enabled);
+      }
+      
+      // Also save locally as backup
       await _secureStorage.write(key: 'backup_cards_enabled', value: enabled.toString());
     } catch (e) {
       throw StorageException('Failed to set backup setting: $e');
+    }
+  }
+
+  Future<bool?> getBackupEnabledFromFirebase() async {
+    try {
+      final authService = AuthService();
+      final currentUser = authService.currentUser;
+      
+      if (currentUser == null || currentUser.isAnonymous) {
+        return null;
+      }
+      
+      final preferences = await authService.getUserPreferences(currentUser.uid);
+      return preferences['backupCardsEnabled'] as bool?;
+    } catch (e) {
+      print('Error getting backup preference from Firebase: $e');
+      return null;
+    }
+  }
+
+  Future<void> saveBackupEnabledToFirebase(bool enabled) async {
+    try {
+      final authService = AuthService();
+      final currentUser = authService.currentUser;
+      
+      if (currentUser == null || currentUser.isAnonymous) {
+        print('User not authenticated or anonymous, skipping Firebase backup preference save');
+        return;
+      }
+      
+      final currentPreferences = await authService.getUserPreferences(currentUser.uid);
+      currentPreferences['backupCardsEnabled'] = enabled;
+      
+      final result = await authService.updateUserPreferences(
+        uid: currentUser.uid,
+        preferences: currentPreferences,
+      );
+      
+      if (!result.isSuccess) {
+        print('Failed to save backup preference to Firebase: ${result.errorMessage}');
+      }
+    } catch (e) {
+      print('Error saving backup preference to Firebase: $e');
+    }
+  }
+
+  // Initialize backup preference from Firebase for already logged-in users
+  Future<void> initializeBackupPreferenceFromFirebase() async {
+    try {
+      final firebaseEnabled = await getBackupEnabledFromFirebase();
+      
+      if (firebaseEnabled != null) {
+        // Update local storage with Firebase value (don't update Firebase again)
+        await setBackupCardsEnabled(firebaseEnabled, updateFirebase: false);
+      }
+    } catch (e) {
+      print('Error initializing backup preference from Firebase: $e');
     }
   }
 

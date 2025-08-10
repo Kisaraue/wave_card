@@ -4,6 +4,7 @@ import 'dart:async';
 import '../../config/router.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/profile_card_provider.dart';
+import '../../data/storage/secure_storage_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/login_screen.dart';
 
@@ -60,10 +61,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     }
   }
 
-  void _checkAuthAndNavigate() {
+  void _checkAuthAndNavigate() async {
     final authState = ref.read(authStateProvider);
     
     if (authState.isAuthenticated) {
+      // Initialize backup preference from Firebase for already authenticated users
+      final storageService = SecureStorageService();
+      await storageService.initializeBackupPreferenceFromFirebase();
+      
       // Trigger Firebase sync for already authenticated users
       ref.read(profileCardProvider.notifier).syncFromFirebase();
       Navigator.of(context).pushReplacement(_createSmoothTransition(const HomeScreen()));

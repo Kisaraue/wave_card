@@ -40,8 +40,8 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Contacts'),
-        // backgroundColor: Theme.of(context).colorScheme.primary,
-        // foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        foregroundColor: Theme.of(context).colorScheme.surface.withOpacity(0.8),
         elevation: 0,
         actions: [
           IconButton(
@@ -90,31 +90,28 @@ class _ContactsScreenState extends ConsumerState<ContactsScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Theme.of(context).colorScheme.surface,
-                Theme.of(context).colorScheme.surface.withOpacity(0.8),
-              ],
-            ),
-          ),
-          child: Column(
-            children: [
-              _buildSearchBar(),
-              Expanded(
-                child: contactsAsync.when(
-                  data: (contacts) => _buildContactsList(contacts),
-                  loading:
-                      () => const Center(child: CircularProgressIndicator()),
-                  error: (error, stack) => _buildErrorState(error),
-                ),
-              ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
             ],
           ),
+        ),
+        child: Column(
+          children: [
+            _buildSearchBar(),
+            Expanded(
+              child: contactsAsync.when(
+                data: (contacts) => _buildContactsList(contacts),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => _buildErrorState(error),
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -129,8 +129,7 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
         children: [
           _buildCardBackground(),
           _buildCardContent(),
-          if (widget.showActions) _buildCardActions(),
-          if (widget.showActions) _buildShareButton(),
+          if (widget.showActions) _buildActionButtons(),
         ],
       ),
     );
@@ -192,9 +191,12 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
     return Padding(
       padding: const EdgeInsets.all(AppConstants.mediumSpacing),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
             children: [
               _buildProfileImage(),
               const SizedBox(width: AppConstants.mediumSpacing),
@@ -240,7 +242,10 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
               ),
             ],
           ),
-          const Spacer(),
+                const Spacer(),
+              ],
+            ),
+          ),
           _buildContactInfo(),
           const SizedBox(height: AppConstants.smallSpacing),
           _buildSocialLinks(),
@@ -257,51 +262,49 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
       child: Column(
         children: [
           Expanded(
-            child: SingleChildScrollView(
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildProfileImage(),
-                    const SizedBox(height: AppConstants.smallSpacing),
-                    Text(
-                      widget.profileCard.fullName,
-                      style: TextStyle(
-                        fontSize: cardStyle.fontSize + 4,
-                        fontWeight: FontWeight.bold,
-                        color: cardStyle.textColor,
-                        fontFamily: cardStyle.fontFamily,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildProfileImage(),
+                  const SizedBox(height: AppConstants.smallSpacing),
+                  Text(
+                    widget.profileCard.fullName,
+                    style: TextStyle(
+                      fontSize: cardStyle.fontSize + 4,
+                      fontWeight: FontWeight.bold,
+                      color: cardStyle.textColor,
+                      fontFamily: cardStyle.fontFamily,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      widget.profileCard.jobTitle,
-                      style: TextStyle(
-                        fontSize: cardStyle.fontSize,
-                        fontWeight: FontWeight.w500,
-                        color: cardStyle.textColor.withOpacity(0.8),
-                        fontFamily: cardStyle.fontFamily,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    widget.profileCard.jobTitle,
+                    style: TextStyle(
+                      fontSize: cardStyle.fontSize,
+                      fontWeight: FontWeight.w500,
+                      color: cardStyle.textColor.withOpacity(0.8),
+                      fontFamily: cardStyle.fontFamily,
                     ),
-                    Text(
-                      widget.profileCard.company,
-                      style: TextStyle(
-                        fontSize: cardStyle.fontSize - 2,
-                        color: cardStyle.textColor.withOpacity(0.6),
-                        fontFamily: cardStyle.fontFamily,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    widget.profileCard.company,
+                    style: TextStyle(
+                      fontSize: cardStyle.fontSize - 2,
+                      color: cardStyle.textColor.withOpacity(0.6),
+                      fontFamily: cardStyle.fontFamily,
                     ),
-                  ],
-                ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           ),
@@ -844,91 +847,56 @@ class _ProfileCardWidgetState extends State<ProfileCardWidget>
     );
   }
 
-  Widget _buildCardActions() {
+  Widget _buildActionButtons() {
     return Positioned(
       top: 12,
       right: 12,
-      child: Material(
-        color: Colors.transparent,
-        child: PopupMenuButton<String>(
-          color: Colors.white,
-          padding: EdgeInsets.zero,
-          child: NeumorphismContainer(
-            padding: const EdgeInsets.all(8),
-            borderRadius: 12,
-            intensity: 0.5,
-            child: Icon(
-              Icons.more_vert,
-              size: 16,
-              color: AppColors.grey,
+      child: Column(
+        children: [
+          if (widget.onEdit != null)
+            GestureDetector(
+              onTap: widget.onEdit,
+              child: NeumorphismContainer(
+                padding: const EdgeInsets.all(8),
+                borderRadius: 12,
+                intensity: 0.5,
+                child: Icon(
+                  Icons.edit,
+                  size: 16,
+                  color: AppColors.grey,
+                ),
+              ),
+            ),
+          if (widget.onEdit != null) const SizedBox(height: 8),
+          if (widget.onDelete != null)
+            GestureDetector(
+              onTap: widget.onDelete,
+              child: NeumorphismContainer(
+                padding: const EdgeInsets.all(8),
+                borderRadius: 12,
+                intensity: 0.5,
+                child: Icon(
+                  Icons.delete,
+                  size: 16,
+                  color: Colors.red.shade400,
+                ),
+              ),
+            ),
+          if (widget.onDelete != null) const SizedBox(height: 8),
+          GestureDetector(
+            onTap: _showSharingOptions,
+            child: NeumorphismContainer(
+              padding: const EdgeInsets.all(8),
+              borderRadius: 12,
+              intensity: 0.5,
+              child: Icon(
+                Icons.share,
+                size: 16,
+                color: AppColors.grey,
+              ),
             ),
           ),
-          onSelected: (value) {
-            switch (value) {
-              case 'edit':
-                widget.onEdit?.call();
-                break;
-              case 'duplicate':
-                widget.onDuplicate?.call();
-                break;
-              case 'delete':
-                widget.onDelete?.call();
-                break;
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'edit',
-              child: Row(
-                children: [
-                  Icon(Icons.edit, size: 16),
-                  SizedBox(width: 8),
-                  Text('Edit'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'duplicate',
-              child: Row(
-                children: [
-                  Icon(Icons.copy, size: 16),
-                  SizedBox(width: 8),
-                  Text('Duplicate'),
-                ],
-              ),
-            ),
-            const PopupMenuItem(
-              value: 'delete',
-              child: Row(
-                children: [
-                  Icon(Icons.delete, size: 16, color: Colors.red),
-                  SizedBox(width: 8),
-                  Text('Delete', style: TextStyle(color: Colors.red)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildShareButton() {
-    return Positioned(
-      top: 56,
-      right: 12,
-      child: GestureDetector(
-        onTap: _showSharingOptions,
-        child: NeumorphismContainer(
-          padding: const EdgeInsets.all(8),
-          borderRadius: 12,
-          intensity: 0.5,
-          child: Icon(
-            Icons.share,
-            size: 16,
-            color: AppColors.grey,
-          ),
-        ),
+        ],
       ),
     );
   }

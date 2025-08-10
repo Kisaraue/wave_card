@@ -59,8 +59,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ],
           ),
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
+        child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppConstants.largeSpacing),
             child: Column(
               children: [
@@ -76,7 +75,6 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 

@@ -175,8 +175,7 @@ class _QRScannerScreenState extends ConsumerState<QRScannerScreen> {
                     ],
                   ),
                 ),
-                child: SafeArea(
-                  child: Column(
+                child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Icon(
@@ -205,7 +204,6 @@ class _QRScannerScreenState extends ConsumerState<QRScannerScreen> {
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
@@ -394,11 +392,8 @@ class _QRScannerScreenState extends ConsumerState<QRScannerScreen> {
           receivedAt: DateTime.now(),
         );
 
-        // Save to local storage
+        // Save to both local storage and Firebase via contact provider
         await ref.read(contactProvider.notifier).addContact(contact);
-
-        // Save to Firebase as received card
-        await FirebaseProfileService.saveReceivedCard(scannedCard!);
 
         if (mounted) {
           Navigator.of(context).pop(contact);

@@ -96,8 +96,7 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Container(
+      body: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -126,7 +125,6 @@ class _ContactDetailScreenState extends ConsumerState<ContactDetailScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 

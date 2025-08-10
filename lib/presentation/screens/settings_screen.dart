@@ -79,8 +79,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: SafeArea(
-        child: ListView(
+      body: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             _buildSectionHeader('Backup'),
@@ -93,7 +92,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _buildDataTile(),
           ],
         ),
-      ),
     );
   }
 

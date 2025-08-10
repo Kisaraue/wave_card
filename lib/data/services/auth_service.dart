@@ -172,6 +172,45 @@ class AuthService {
     }
   }
 
+  // Update user preferences
+  Future<AuthResult> updateUserPreferences({
+    required String uid,
+    required Map<String, dynamic> preferences,
+  }) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .update({
+            'preferences': preferences,
+            'updatedAt': DateTime.now().toIso8601String(),
+          });
+
+      return AuthResult.success(null);
+    } catch (e) {
+      return AuthResult.failure('Failed to update preferences: ${e.toString()}');
+    }
+  }
+
+  // Get user preferences
+  Future<Map<String, dynamic>> getUserPreferences(String uid) async {
+    try {
+      final userData = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (userData.exists && userData.data() != null) {
+        final data = userData.data()!;
+        return Map<String, dynamic>.from(data['preferences'] ?? {});
+      }
+      return {};
+    } catch (e) {
+      print('Error getting user preferences: $e');
+      return {};
+    }
+  }
+
   // Delete user account
   Future<AuthResult> deleteAccount() async {
     try {

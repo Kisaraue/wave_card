@@ -95,6 +95,15 @@ class FirebaseProfileService {
             final data = doc.data();
             data.remove('savedAt');
             data.remove('userId');
+            
+            // Convert Firestore Timestamps to ISO strings
+            if (data['createdAt'] is Timestamp) {
+              data['createdAt'] = (data['createdAt'] as Timestamp).toDate().toIso8601String();
+            }
+            if (data['updatedAt'] is Timestamp) {
+              data['updatedAt'] = (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+            }
+            
             return ProfileCard.fromJson(data);
           })
           .toList();
@@ -124,11 +133,65 @@ class FirebaseProfileService {
             final data = doc.data();
             data.remove('receivedAt');
             data.remove('userId');
+            
+            // Convert Firestore Timestamps to ISO strings
+            if (data['createdAt'] is Timestamp) {
+              data['createdAt'] = (data['createdAt'] as Timestamp).toDate().toIso8601String();
+            }
+            if (data['updatedAt'] is Timestamp) {
+              data['updatedAt'] = (data['updatedAt'] as Timestamp).toDate().toIso8601String();
+            }
+            
             return ProfileCard.fromJson(data);
           })
           .toList();
     } catch (e) {
       throw Exception('Failed to fetch received cards from Firebase: $e');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getReceivedCardsWithMetadata() async {
+    try {
+      final userId = currentUserId;
+      if (userId == null) {
+        return [];
+      }
+
+      final receivedCollection = _firestore
+          .collection(_receivedCardsCollection)
+          .doc(userId)
+          .collection('cards');
+
+      final querySnapshot = await receivedCollection
+          .orderBy('receivedAt', descending: true)
+          .get();
+
+      return querySnapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            final receivedAt = data['receivedAt'] as Timestamp?;
+            
+            // Remove Firebase-specific fields from card data
+            final cardData = Map<String, dynamic>.from(data);
+            cardData.remove('receivedAt');
+            cardData.remove('userId');
+            
+            // Convert Firestore Timestamps to ISO strings
+            if (cardData['createdAt'] is Timestamp) {
+              cardData['createdAt'] = (cardData['createdAt'] as Timestamp).toDate().toIso8601String();
+            }
+            if (cardData['updatedAt'] is Timestamp) {
+              cardData['updatedAt'] = (cardData['updatedAt'] as Timestamp).toDate().toIso8601String();
+            }
+            
+            return {
+              'profileCard': ProfileCard.fromJson(cardData),
+              'receivedAt': receivedAt?.toDate() ?? DateTime.now(),
+            };
+          })
+          .toList();
+    } catch (e) {
+      throw Exception('Failed to fetch received cards with metadata from Firebase: $e');
     }
   }
 
@@ -144,10 +207,10 @@ class FirebaseProfileService {
           .doc(userId)
           .collection('cards');
 
-      await userCollection.doc(profileCard.id).update({
-        ...profileCard.toJson(),
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
+      final cardData = profileCard.toJson();
+      cardData['updatedAt'] = FieldValue.serverTimestamp();
+      
+      await userCollection.doc(profileCard.id).update(cardData);
     } catch (e) {
       throw Exception('Failed to update profile card in Firebase: $e');
     }

@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/services/auth_service.dart';
 import '../data/models/app_user.dart';
+import '../data/storage/secure_storage_service.dart';
 
 // Auth service provider
 final authServiceProvider = Provider<AuthService>((ref) {
@@ -83,9 +84,23 @@ class AuthController {
       // Refresh providers after successful signup
       _ref.invalidate(firebaseUserProvider);
       _ref.invalidate(appUserProvider);
+      
+      // For new users, initialize backup preference as false
+      await _initializeBackupPreferenceForNewUser();
     }
     
     return result;
+  }
+
+  // Initialize backup preference for new users
+  Future<void> _initializeBackupPreferenceForNewUser() async {
+    try {
+      final storageService = SecureStorageService();
+      // Set backup as disabled by default for new users
+      await storageService.setBackupCardsEnabled(false);
+    } catch (e) {
+      print('Error initializing backup preference for new user: $e');
+    }
   }
   
   // Sign in
@@ -102,9 +117,27 @@ class AuthController {
       // Refresh providers after successful signin
       _ref.invalidate(firebaseUserProvider);
       _ref.invalidate(appUserProvider);
+      
+      // Sync backup preference from Firebase to local storage
+      await _syncBackupPreferenceFromFirebase();
     }
     
     return result;
+  }
+
+  // Sync backup preference from Firebase to local storage after login
+  Future<void> _syncBackupPreferenceFromFirebase() async {
+    try {
+      final storageService = SecureStorageService();
+      final firebaseEnabled = await storageService.getBackupEnabledFromFirebase();
+      
+      if (firebaseEnabled != null) {
+        // Update local storage with Firebase value (don't update Firebase again)
+        await storageService.setBackupCardsEnabled(firebaseEnabled, updateFirebase: false);
+      }
+    } catch (e) {
+      print('Error syncing backup preference from Firebase: $e');
+    }
   }
   
   // Sign out

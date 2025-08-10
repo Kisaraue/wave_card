@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/models/contact.dart';
 import '../data/models/profile_card.dart';
 import '../data/storage/secure_storage_service.dart';
+import '../data/services/firebase_profile_service.dart';
 
 final contactProvider = StateNotifierProvider<ContactNotifier, AsyncValue<List<Contact>>>((ref) {
   return ContactNotifier();
@@ -17,8 +18,41 @@ class ContactNotifier extends StateNotifier<AsyncValue<List<Contact>>> {
   Future<void> loadContacts() async {
     try {
       state = const AsyncValue.loading();
-      final contacts = await _storageService.getContacts();
-      state = AsyncValue.data(contacts);
+      
+      // Load contacts from Firebase first
+      List<Contact> allContacts = [];
+      try {
+        final firebaseCardsWithMetadata = await FirebaseProfileService.getReceivedCardsWithMetadata();
+        allContacts = firebaseCardsWithMetadata.map((data) => Contact(
+          id: data['profileCard'].id,
+          profileCard: data['profileCard'] as ProfileCard,
+          receivedAt: data['receivedAt'] as DateTime,
+        )).toList();
+      } catch (firebaseError) {
+        print('Failed to load from Firebase: $firebaseError');
+        // If Firebase fails, fall back to local storage only
+      }
+      
+      // Load from local storage and merge
+      final localContacts = await _storageService.getContacts();
+      
+      // Create a map to avoid duplicates (Firebase takes precedence)
+      final Map<String, Contact> contactMap = {};
+      
+      // Add local contacts first
+      for (final contact in localContacts) {
+        contactMap[contact.profileCard.id] = contact;
+      }
+      
+      // Add/overwrite with Firebase contacts (they take precedence)
+      for (final contact in allContacts) {
+        contactMap[contact.profileCard.id] = contact;
+      }
+      
+      final mergedContacts = contactMap.values.toList();
+      mergedContacts.sort((a, b) => b.receivedAt.compareTo(a.receivedAt));
+      
+      state = AsyncValue.data(mergedContacts);
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
     }
@@ -26,7 +60,17 @@ class ContactNotifier extends StateNotifier<AsyncValue<List<Contact>>> {
 
   Future<void> addContact(Contact contact) async {
     try {
+      // Save to local storage first
       await _storageService.addContact(contact);
+      
+      // Save to Firebase
+      try {
+        await FirebaseProfileService.saveReceivedCard(contact.profileCard);
+      } catch (firebaseError) {
+        print('Failed to save to Firebase: $firebaseError');
+        // Continue even if Firebase fails - local storage succeeded
+      }
+      
       await loadContacts();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);
@@ -44,7 +88,20 @@ class ContactNotifier extends StateNotifier<AsyncValue<List<Contact>>> {
 
   Future<void> deleteContact(String contactId) async {
     try {
+      // Delete from local storage
       await _storageService.deleteContact(contactId);
+      
+      // Delete from Firebase
+      try {
+        // Need to find the profile card ID from the contact
+        final contacts = await _storageService.getContacts();
+        final contact = contacts.firstWhere((c) => c.id == contactId);
+        await FirebaseProfileService.deleteReceivedCard(contact.profileCard.id);
+      } catch (firebaseError) {
+        print('Failed to delete from Firebase: $firebaseError');
+        // Continue even if Firebase fails - local storage succeeded
+      }
+      
       await loadContacts();
     } catch (error, stackTrace) {
       state = AsyncValue.error(error, stackTrace);

@@ -53,8 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ],
           ),
         ),
-        child: SafeArea(
-          child: SingleChildScrollView(
+        child: SingleChildScrollView(
             padding: const EdgeInsets.all(AppConstants.largeSpacing),
             child: Column(
               children: [
@@ -70,7 +69,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             ),
           ),
         ),
-      ),
     );
   }
 

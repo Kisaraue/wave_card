@@ -29,8 +29,8 @@ class ProfileCardNotifier extends StateNotifier<AsyncValue<List<ProfileCard>>> {
       // Load cards from local storage first
       final localCards = await _storageService.getProfileCards();
       
-      // If backup is enabled and we have authentication, sync with Firebase
-      if (await _isBackupEnabled()) {
+      // If local storage has cards and backup is enabled, sync with Firebase
+      if (localCards.isNotEmpty && await _isBackupEnabled()) {
         try {
           final firebaseCards = await FirebaseProfileService.getUserProfileCards();
           
@@ -61,7 +61,31 @@ class ProfileCardNotifier extends StateNotifier<AsyncValue<List<ProfileCard>>> {
           // Fall back to local cards if Firebase fails
           state = AsyncValue.data(localCards);
         }
-      } else {
+      } 
+      // If local storage is empty, try to load from Firebase
+      else if (localCards.isEmpty) {
+        try {
+          final firebaseCards = await FirebaseProfileService.getUserProfileCards();
+          
+          if (firebaseCards.isNotEmpty) {
+            // Save Firebase cards to local storage
+            await _storageService.clearProfileCards();
+            for (final card in firebaseCards) {
+              await _storageService.addProfileCard(card);
+            }
+            state = AsyncValue.data(firebaseCards);
+          } else {
+            // No cards found in Firebase either
+            state = AsyncValue.data(localCards); // Empty list
+          }
+        } catch (firebaseError) {
+          print('Firebase load failed: $firebaseError');
+          // Fall back to empty local cards
+          state = AsyncValue.data(localCards);
+        }
+      }
+      // Local storage has cards but backup is disabled
+      else {
         state = AsyncValue.data(localCards);
       }
     } catch (error, stackTrace) {

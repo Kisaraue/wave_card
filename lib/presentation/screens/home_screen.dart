@@ -28,35 +28,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     // Initialize toast for this context
     ToastUtils.init(context);
-    
+
     return Scaffold(
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Theme.of(context).colorScheme.surface, Theme.of(context).colorScheme.surface.withOpacity(0.8)],
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 100), // Add padding for floating nav
-                child: IndexedStack(
-                  index: _selectedIndex,
-                  children: const [
-                    _MyCardsTab(),
-                    _MyContactsTab(),
-                    _SettingsTab(),
-                  ],
-                ),
+      body: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Theme.of(context).colorScheme.surface,
+                  Theme.of(context).colorScheme.surface.withOpacity(0.8),
+                ],
               ),
             ),
-            _buildQRScanButton(),
-            _buildFloatingBottomNavigationBar(),
-          ],
-        ),
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: 100,
+                top: MediaQuery.of(context).size.height * 0.03,
+              ), // Add padding for floating nav
+              child: IndexedStack(
+                index: _selectedIndex,
+                children: const [
+                  _MyCardsTab(),
+                  _MyContactsTab(),
+                  _SettingsTab(),
+                ],
+              ),
+            ),
+          ),
+          _buildQRScanButton(),
+          _buildFloatingBottomNavigationBar(),
+        ],
       ),
     );
   }
@@ -111,9 +115,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            color: isSelected 
-                ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
-                : Colors.transparent,
+            color:
+                isSelected
+                    ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
+                    : Colors.transparent,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -121,18 +126,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               Icon(
                 icon,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color:
+                    isSelected
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withOpacity(0.6),
                 size: 22,
               ),
               const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected
-                      ? AppColors.grey
-                      : AppColors.black,
+                  color: isSelected ? AppColors.grey : AppColors.black,
                   fontSize: 11,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                 ),
@@ -169,9 +175,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _scanQRCode() async {
     final contact = await Navigator.push<Contact>(
       context,
-      MaterialPageRoute(
-        builder: (context) => const QRScannerScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const QRScannerScreen()),
     );
 
     if (contact != null && mounted) {
@@ -182,7 +186,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       );
     }
   }
-
 }
 
 class _MyCardsTab extends ConsumerWidget {
@@ -193,45 +196,46 @@ class _MyCardsTab extends ConsumerWidget {
     final profileCardsAsync = ref.watch(profileCardProvider);
     final canAddMore = ref.watch(canAddMoreCardsProvider);
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(context, canAddMore),
-            const SizedBox(height: AppConstants.largeSpacing),
-            Expanded(
-              child: profileCardsAsync.when(
-                data: (cards) => _buildCardsList(context, ref, cards),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline,
-                        size: 64,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                      ),
-                      const SizedBox(height: AppConstants.mediumSpacing),
-                      Text(
-                        'Error loading cards',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: AppConstants.smallSpacing),
-                      Text(
-                        error.toString(),
-                        style: Theme.of(context).textTheme.bodyMedium,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+    return Padding(
+      padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(context, canAddMore),
+          const SizedBox(height: AppConstants.largeSpacing),
+          Expanded(
+            child: profileCardsAsync.when(
+              data: (cards) => _buildCardsList(context, ref, cards),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error:
+                  (error, stack) => Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withOpacity(0.6),
+                        ),
+                        const SizedBox(height: AppConstants.mediumSpacing),
+                        Text(
+                          'Error loading cards',
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: AppConstants.smallSpacing),
+                        Text(
+                          error.toString(),
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -245,9 +249,9 @@ class _MyCardsTab extends ConsumerWidget {
           children: [
             Text(
               'My Cards',
-              style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: AppConstants.smallSpacing),
             Text(
@@ -260,7 +264,8 @@ class _MyCardsTab extends ConsumerWidget {
         ),
         if (canAddMore)
           NeumorphismButton(
-            onTap: () => Navigator.pushNamed(context, AppRouter.createCardWizard),
+            onTap:
+                () => Navigator.pushNamed(context, AppRouter.createCardWizard),
             padding: const EdgeInsets.all(8),
             borderRadius: 12,
             child: Icon(Icons.add, color: AppColors.grey, size: 32),
@@ -269,7 +274,11 @@ class _MyCardsTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildCardsList(BuildContext context, WidgetRef ref, List<ProfileCard> cards) {
+  Widget _buildCardsList(
+    BuildContext context,
+    WidgetRef ref,
+    List<ProfileCard> cards,
+  ) {
     if (cards.isEmpty) {
       return _buildEmptyState(context);
     }
@@ -283,16 +292,18 @@ class _MyCardsTab extends ConsumerWidget {
           child: ProfileCardWidget(
             profileCard: card,
             showActions: true,
-            onTap: () => Navigator.pushNamed(
-              context,
-              AppRouter.editCard,
-              arguments: card.id,
-            ),
-            onEdit: () => Navigator.pushNamed(
-              context,
-              AppRouter.editCard,
-              arguments: card.id,
-            ),
+            onTap:
+                () => Navigator.pushNamed(
+                  context,
+                  AppRouter.editCard,
+                  arguments: card.id,
+                ),
+            onEdit:
+                () => Navigator.pushNamed(
+                  context,
+                  AppRouter.editCard,
+                  arguments: card.id,
+                ),
             onDuplicate: () => _duplicateCard(context, ref, card),
             onDelete: () => _deleteCard(context, ref, card),
           ),
@@ -332,7 +343,8 @@ class _MyCardsTab extends ConsumerWidget {
               backgroundColor: AppColors.buttonColor,
               foregroundColor: AppColors.black,
             ),
-            onPressed: () => Navigator.pushNamed(context, AppRouter.createCardWizard),
+            onPressed:
+                () => Navigator.pushNamed(context, AppRouter.createCardWizard),
             child: const Text('Create Card'),
           ),
         ],
@@ -340,12 +352,13 @@ class _MyCardsTab extends ConsumerWidget {
     );
   }
 
-  void _duplicateCard(BuildContext context, WidgetRef ref, ProfileCard card) async {
+  void _duplicateCard(
+    BuildContext context,
+    WidgetRef ref,
+    ProfileCard card,
+  ) async {
     await ref.read(profileCardProvider.notifier).duplicateProfileCard(card);
-    ToastUtils.showSuccess(
-      'Card duplicated successfully!',
-      isDarkMode: false,
-    );
+    ToastUtils.showSuccess('Card duplicated successfully!', isDarkMode: false);
   }
 
   void _deleteCard(BuildContext context, WidgetRef ref, ProfileCard card) {
@@ -354,7 +367,9 @@ class _MyCardsTab extends ConsumerWidget {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Delete Card'),
-          content: Text('Are you sure you want to delete "${card.fullName}" card? This action cannot be undone.'),
+          content: Text(
+            'Are you sure you want to delete "${card.fullName}" card? This action cannot be undone.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -363,7 +378,9 @@ class _MyCardsTab extends ConsumerWidget {
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
-                await ref.read(profileCardProvider.notifier).deleteProfileCard(card.id);
+                await ref
+                    .read(profileCardProvider.notifier)
+                    .deleteProfileCard(card.id);
                 ToastUtils.showSuccess(
                   'Card deleted successfully!',
                   isDarkMode: false,
@@ -391,51 +408,51 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
   Widget build(BuildContext context) {
     final contactsAsync = ref.watch(contactProvider);
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'My Contacts',
-                      style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+    return Padding(
+      padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'My Contacts',
+                    style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: AppConstants.smallSpacing),
-                    Text(
-                      'View and manage received cards',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                      ),
+                  ),
+                  const SizedBox(height: AppConstants.smallSpacing),
+                  Text(
+                    'View and manage received cards',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.6),
                     ),
-                  ],
-                ),
-                NeumorphismButton(
-                  onTap: () => Navigator.pushNamed(context, AppRouter.contacts),
-                  padding: const EdgeInsets.all(8),
-                  borderRadius: 12,
-                  child: Icon(Icons.view_list, color: AppColors.grey, size: 24),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppConstants.largeSpacing),
-            Expanded(
-              child: contactsAsync.when(
-                data: (contacts) => _buildContactsList(contacts),
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => _buildErrorState(error),
+                  ),
+                ],
               ),
+              NeumorphismButton(
+                onTap: () => Navigator.pushNamed(context, AppRouter.contacts),
+                padding: const EdgeInsets.all(8),
+                borderRadius: 12,
+                child: Icon(Icons.view_list, color: AppColors.grey, size: 24),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppConstants.largeSpacing),
+          Expanded(
+            child: contactsAsync.when(
+              data: (contacts) => _buildContactsList(contacts),
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, stack) => _buildErrorState(error),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -456,7 +473,9 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
             itemBuilder: (context, index) {
               final contact = displayContacts[index];
               return Padding(
-                padding: const EdgeInsets.only(bottom: AppConstants.mediumSpacing),
+                padding: const EdgeInsets.only(
+                  bottom: AppConstants.mediumSpacing,
+                ),
                 child: _buildContactCard(contact),
               );
             },
@@ -476,7 +495,7 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              icon: const Icon(Icons.view_list, color: AppColors.grey,),
+              icon: const Icon(Icons.view_list, color: AppColors.grey),
               label: Text('View All ${contacts.length} Contacts'),
             ),
           ),
@@ -489,55 +508,60 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
       borderRadius: 16,
       padding: const EdgeInsets.all(AppConstants.smallSpacing),
       child: InkWell(
-        onTap: () => Navigator.pushNamed(
-          context,
-          '/contact-detail',
-          arguments: contact.id,
-        ),
+        onTap:
+            () => Navigator.pushNamed(
+              context,
+              '/contact-detail',
+              arguments: contact.id,
+            ),
         borderRadius: BorderRadius.circular(16),
         child: Row(
+          children: [
+            _buildContactAvatar(contact),
+            const SizedBox(width: AppConstants.smallSpacing),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildContactAvatar(contact),
-                  const SizedBox(width: AppConstants.smallSpacing),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          contact.profileCard.fullName,
-                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Theme.of(context).colorScheme.onSurface,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          contact.profileCard.jobTitle,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          contact.profileCard.company,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-                            fontSize: 11,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                  Text(
+                    contact.profileCard.fullName,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 16,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+                  const SizedBox(height: 2),
+                  Text(
+                    contact.profileCard.jobTitle,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  Text(
+                    contact.profileCard.company,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withOpacity(0.6),
+                      fontSize: 11,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            ),
           ],
         ),
       ),
@@ -546,7 +570,7 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
 
   Widget _buildContactAvatar(Contact contact) {
     final profileImageUrl = contact.profileCard.profileImageUrl;
-    
+
     return Container(
       width: 50,
       height: 50,
@@ -576,28 +600,34 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
 
   Widget _buildAvatarImage(String? profileImageUrl, String fullName) {
     // If no image URL or it's a broken local path, show initials
-    if (profileImageUrl == null || 
-        profileImageUrl.isEmpty || 
-        profileImageUrl.contains('C:\\') || 
+    if (profileImageUrl == null ||
+        profileImageUrl.isEmpty ||
+        profileImageUrl.contains('C:\\') ||
         profileImageUrl.contains('c:\\')) {
       return _buildInitialsAvatar(fullName);
     }
 
     // Try to load the image, with fallback to initials
-    if (profileImageUrl.startsWith('http://') || profileImageUrl.startsWith('https://')) {
+    if (profileImageUrl.startsWith('http://') ||
+        profileImageUrl.startsWith('https://')) {
       return Image.network(
         profileImageUrl,
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildInitialsAvatar(fullName),
+        errorBuilder:
+            (context, error, stackTrace) => _buildInitialsAvatar(fullName),
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
           return Center(
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).colorScheme.onPrimary),
-              value: loadingProgress.expectedTotalBytes != null
-                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                  : null,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.onPrimary,
+              ),
+              value:
+                  loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
             ),
           );
         },
@@ -669,10 +699,13 @@ class _MyContactsTabState extends ConsumerState<_MyContactsTab> {
           ),
           const SizedBox(height: AppConstants.largeSpacing),
           ElevatedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const QRScannerScreen()),
-            ),
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const QRScannerScreen(),
+                  ),
+                ),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.buttonColor,
               foregroundColor: AppColors.black,
@@ -780,7 +813,9 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Backup disabled. Cards will only be saved locally.'),
+              content: Text(
+                'Backup disabled. Cards will only be saved locally.',
+              ),
             ),
           );
         }
@@ -799,42 +834,40 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppConstants.mediumSpacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Settings',
-              style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+    return Padding(
+      padding: const EdgeInsets.all(AppConstants.mediumSpacing),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Settings',
+            style: Theme.of(
+              context,
+            ).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: AppConstants.smallSpacing),
+          Text(
+            'Customize your app experience',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
-            const SizedBox(height: AppConstants.smallSpacing),
-            Text(
-              'Customize your app experience',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
-              ),
+          ),
+          const SizedBox(height: AppConstants.largeSpacing),
+          Expanded(
+            child: ListView(
+              children: [
+                _buildSectionHeader(context, 'Backup'),
+                _buildBackupTile(context),
+                const SizedBox(height: 24),
+                _buildSectionHeader(context, 'About'),
+                _buildAboutTile(context),
+                const SizedBox(height: 24),
+                _buildSectionHeader(context, 'Data'),
+                _buildDataTile(context),
+              ],
             ),
-            const SizedBox(height: AppConstants.largeSpacing),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildSectionHeader(context, 'Backup'),
-                  _buildBackupTile(context),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader(context, 'About'),
-                  _buildAboutTile(context),
-                  const SizedBox(height: 24),
-                  _buildSectionHeader(context, 'Data'),
-                  _buildDataTile(context),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -846,17 +879,15 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
       child: ListTile(
         leading: const Icon(Icons.cloud_upload),
         title: const Text('Backup Cards'),
-        subtitle: const Text('Save cards to Firebase Cloud'),
-        trailing: _isLoading 
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )
-          : Switch(
-              value: _isBackupEnabled,
-              onChanged: _toggleBackup,
-            ),
+        subtitle: const Text('Save cards to Cloud'),
+        trailing:
+            _isLoading
+                ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+                : Switch(value: _isBackupEnabled, onChanged: _toggleBackup),
       ),
     );
   }
@@ -875,7 +906,6 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
     );
   }
 
-
   Widget _buildAboutTile(BuildContext context) {
     return NeumorphismContainer(
       borderRadius: 16,
@@ -892,7 +922,9 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
             applicationVersion: '1.0.0',
             applicationIcon: const Icon(Icons.credit_card, size: 48),
             children: const [
-              Text('A virtual business card manager with customizable profile cards.'),
+              Text(
+                'A virtual business card manager with customizable profile cards.',
+              ),
             ],
           );
         },
@@ -908,7 +940,10 @@ class _SettingsTabState extends ConsumerState<_SettingsTab> {
         leading: const Icon(Icons.storage),
         title: const Text('Clear All Data'),
         subtitle: const Text('Delete all profile cards and contacts'),
-        trailing: Icon(Icons.arrow_forward_ios, color: Theme.of(context).colorScheme.error),
+        trailing: Icon(
+          Icons.arrow_forward_ios,
+          color: Theme.of(context).colorScheme.error,
+        ),
         onTap: () {
           // TODO: Implement clear data functionality
         },

@@ -79,8 +79,7 @@ class _ProfileCardCreationScreenState
           ),
         ],
       ),
-      body: SafeArea(
-        child: Container(
+      body: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -113,7 +112,6 @@ class _ProfileCardCreationScreenState
             ),
           ),
         ),
-      ),
     );
   }
 
